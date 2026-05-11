@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "description": "Model routing profiles. Profiles only set provider/model route variables and never contain API keys.",
+  "profiles": {
+    "current": {
+      "label": "现有高效果演示配置",
+      "summary": "保留当前 Codex/SpatialAI + OpenRouter embedding 链路，用于稳定演示。",
+      "variables": {
+        "MODEL_PROFILE": "current",
+        "ACTIVE_MODEL_PROVIDER": "codex",
+        "TEXT_AGENT_PROVIDER": "codex",
+        "TEXT_AGENT_MODEL": "gpt-5.5",
+        "VISION_AGENT_PROVIDER": "codex",
+        "VISION_AGENT_MODEL": "gpt-5.5",
+        "EMBEDDING_AGENT_PROVIDER": "openrouter",
+        "EMBEDDING_AGENT_MODEL": "qwen/qwen3-embedding-8b",
+        "COMPLIANCE_AGENT_PROVIDER": "codex",
+        "COMPLIANCE_AGENT_MODEL": "gpt-5.5",
+        "KNOWLEDGE_AGENT_PROVIDER": "codex",
+        "KNOWLEDGE_AGENT_MODEL": "gpt-5.5"
+      }
+    },
+    "china": {
+      "label": "国产模型适配配置",
+      "summary": "优先使用 OpenCode/OpenRouter 网关中的国产模型：Qwen 负责文本与知识，Mimo 负责视觉，Qwen embedding 负责向量检索。",
+      "variables": {
+        "MODEL_PROFILE": "china",
+        "ACTIVE_MODEL_PROVIDER": "opencode",
+        "TEXT_AGENT_PROVIDER": "opencode",
+        "TEXT_AGENT_MODEL": "qwen3.6-plus",
+        "VISION_AGENT_PROVIDER": "opencode",
+        "VISION_AGENT_MODEL": "mimo-v2-omni",
+        "EMBEDDING_AGENT_PROVIDER": "openrouter",
+        "EMBEDDING_AGENT_MODEL": "qwen/qwen3-embedding-8b",
+        "COMPLIANCE_AGENT_PROVIDER": "opencode",
+        "COMPLIANCE_AGENT_MODEL": "qwen3.6-plus",
+        "KNOWLEDGE_AGENT_PROVIDER": "opencode",
+        "KNOWLEDGE_AGENT_MODEL": "qwen3.6-plus"
+      }
+    }
+  }
+}

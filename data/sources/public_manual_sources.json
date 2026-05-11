@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "created_for": "A1 多模态设备检修知识检索与作业辅助系统",
+  "usage_note": "These public URLs are for local contest research and citation tracking. Do not redistribute downloaded manuals without checking the rights holder's terms.",
+  "sources": [
+    {
+      "id": "abb-low-voltage-motors-manual",
+      "title": "Low Voltage Standard Motors Manual",
+      "equipment": "motor",
+      "publisher": "ABB",
+      "source_url": "https://library.e.abb.com/public/2479deaf4f26781bc1257b1a005a7d26/LVStdMotorManual_ML_12_2004.pdf",
+      "license": "publicly accessible manufacturer documentation; redistribution not assumed",
+      "version": "2004-12",
+      "target_filename": "abb-low-voltage-standard-motors-manual.pdf",
+      "priority": "required"
+    },
+    {
+      "id": "weg-electric-motors-manual",
+      "title": "Manual of Electric Motors",
+      "equipment": "motor",
+      "publisher": "WEG",
+      "source_url": "https://static.weg.net/medias/downloadcenter/ha6/h39/WEG-WMO-safe-area-50033244-manual-pt-en-es.pdf",
+      "license": "publicly accessible manufacturer documentation; redistribution not assumed",
+      "version": "current public PDF",
+      "target_filename": "weg-electric-motors-manual-english.pdf",
+      "priority": "required"
+    },
+    {
+      "id": "weg-low-hv-electric-motors-iom",
+      "title": "Low and High Voltage Electric Motors Installation, Operation and Maintenance Manual",
+      "equipment": "motor",
+      "publisher": "WEG",
+      "source_url": "https://static.weg.net/medias/downloadcenter/he9/h1f/WEG-WMO-low-hv-electric-motors-iom-50031142-manual-en-pt-es-de-fr-ru-nl-it-zh-web.pdf",
+      "license": "publicly accessible manufacturer documentation; redistribution not assumed",
+      "version": "current public PDF",
+      "target_filename": "weg-low-hv-electric-motors-iom.pdf",
+      "priority": "required"
+    },
+    {
+      "id": "grundfos-cr-cri-crn-iom",
+      "title": "CR, CRI, CRN Installation and Operating Instructions",
+      "equipment": "pump",
+      "publisher": "Grundfos",
+      "source_url": "https://api.grundfos.com/literature/Grundfosliterature-3929721.pdf",
+      "license": "publicly accessible manufacturer documentation; redistribution not assumed",
+      "version": "current public PDF",
+      "target_filename": "grundfos-cr-cri-crn-iom.pdf",
+      "priority": "required"
+    },
+    {
+      "id": "grundfos-cr-cri-crn-service",
+      "title": "CR, CRI, CRN Service Instructions",
+      "equipment": "pump",
+      "publisher": "Grundfos",
+      "source_url": "https://api.grundfos.com/literature/Grundfosliterature-1191305.pdf",
+      "license": "publicly accessible manufacturer documentation; redistribution not assumed",
+      "version": "current public PDF",
+      "target_filename": "grundfos-cr-cri-crn-service.pdf",
+      "priority": "required"
+    },
+    {
+      "id": "grundfos-cr-air-cooled-top-supplement",
+      "title": "CR, CRN Air-Cooled Top Installation and Operating Instructions",
+      "equipment": "pump",
+      "publisher": "Grundfos",
+      "source_url": "https://api.grundfos.com/literature/Grundfosliterature-2127832.pdf",
+      "license": "publicly accessible manufacturer documentation; redistribution not assumed",
+      "version": "current public PDF",
+      "target_filename": "grundfos-cr-air-cooled-top-supplement.pdf",
+      "priority": "required"
+    },
+    {
+      "id": "xylem-split-case-fire-pumps-iom",
+      "title": "Centrifugal Split Case Fire Pumps Installation, Operation, and Maintenance",
+      "equipment": "pump",
+      "publisher": "Xylem",
+      "source_url": "https://www.xylem.com/siteassets/brand/bell-amp-gossett/resources/manual/centrifugal-split-case-fire-pumps--ac2000-series-iom.pdf",
+      "license": "publicly accessible manufacturer documentation; redistribution not assumed",
+      "version": "current public PDF",
+      "target_filename": "xylem-split-case-fire-pumps-iom.pdf",
+      "priority": "candidate",
+      "active": false
+    },
+    {
+      "id": "patterson-vertical-inline-pump-om",
+      "title": "Vertical Inline Pumps Operation and Maintenance Manual",
+      "equipment": "pump",
+      "publisher": "Patterson Pump Company",
+      "source_url": "https://www.pattersonpumps.com/pdf/OM/Vertical_In-line_Pumps.pdf",
+      "license": "publicly accessible manufacturer documentation; redistribution not assumed",
+      "version": "current public PDF",
+      "target_filename": "patterson-vertical-inline-pumps-om.pdf",
+      "priority": "candidate",
+      "active": false
+    },
+    {
+      "id": "pentair-ds3-self-priming-centrifugal-pump-iom",
+      "title": "DS3 Series Self-Priming Centrifugal Pump Installation and Operation Manual",
+      "equipment": "pump",
+      "publisher": "Pentair",
+      "source_url": "https://www.pentair.com/content/dam/extranet/nam/sta-rite/manuals/5731%202696%20DS3%20Series%20Self-Priming%20Centrifugal%20Pump%20IOM.pdf",
+      "license": "publicly accessible manufacturer documentation; redistribution not assumed",
+      "version": "current public PDF",
+      "target_filename": "pentair-ds3-self-priming-centrifugal-pump-iom.pdf",
+      "priority": "candidate",
+      "active": false
+    },
+    {
+      "id": "skf-bearing-maintenance-handbook",
+      "title": "SKF Bearing Maintenance Handbook",
+      "equipment": "bearing",
+      "publisher": "SKF",
+      "source_url": "https://cdn.skfmediahub.skf.com/api/public/0901d1968013be94/pdf_preview_medium/0901d1968013be94_pdf_preview_medium.pdf",
+      "license": "publicly accessible manufacturer documentation; redistribution not assumed",
+      "version": "current public PDF preview",
+      "target_filename": "skf-bearing-maintenance-handbook.pdf",
+      "priority": "required"
+    },
+    {
+      "id": "skf-bearing-damage-and-failure-analysis",
+      "title": "Bearing Damage and Failure Analysis",
+      "equipment": "bearing",
+      "publisher": "SKF",
+      "source_url": "https://cdn.skfmediahub.skf.com/api/public/093168a92d25cc46/pdf_preview_medium/093168a92d25cc46_pdf_preview_medium.pdf",
+      "license": "publicly accessible manufacturer documentation; redistribution not assumed",
+      "version": "current public PDF preview",
+      "target_filename": "skf-bearing-damage-and-failure-analysis.pdf",
+      "priority": "required"
+    },
+    {
+      "id": "skf-bearing-failures-evaluation-guide",
+      "title": "Rolling Bearing Failures Evaluation Guide",
+      "equipment": "bearing",
+      "publisher": "SKF",
+      "source_url": "https://cdn.skfmediahub.skf.com/api/public/0901d1968080dc5a/pdf_preview_medium/07038_4_EN_Bearing_guide_LOW_pdf_preview_medium.pdf",
+      "license": "publicly accessible manufacturer documentation; redistribution not assumed",
+      "version": "current public PDF preview",
+      "target_filename": "skf-bearing-failures-evaluation-guide.pdf",
+      "priority": "required"
+    }
+  ]
+}

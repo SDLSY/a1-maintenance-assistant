@@ -1,0 +1,17 @@
+.env
+.env.local
+.venv/
+data/maintenance.db
+data/test-maintenance.db
+data/uploads/
+__pycache__/
+.pytest_cache/
+.playwright-cli/
+node_modules/
+dist/
+tmp/
+data/raw/manuals/public/*.pdf
+materials/*.pptx
+materials/*.docx
+materials/images/
+materials/full_slides/

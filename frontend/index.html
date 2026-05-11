@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>A1 多模态设备检修知识检索与作业辅助系统</title>
+    <script src="/static/vendor/vue.global.prod.js"></script>
+    <script src="/static/vendor/lucide.js"></script>
+    <script src="/static/config.js"></script>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">A1</div>
+          <div>
+            <h1>设备检修智能助手</h1>
+            <p>电机 · 泵 · 轴承</p>
+          </div>
+        </div>
+
+        <nav class="nav-tabs" aria-label="主导航">
+          <button v-for="tab in tabs" :key="tab.id" :class="{active: activeTab === tab.id}" @click="activeTab = tab.id">
+            <i :data-lucide="tab.icon"></i>
+            <span>{{ tab.label }}</span>
+          </button>
+        </nav>
+
+        <section class="provider-panel">
+          <div class="panel-title">模型供应商</div>
+          <div v-for="provider in providers" :key="provider.name" class="provider-row">
+            <span class="status-dot" :class="{ok: provider.key_present, active: provider.active}"></span>
+            <div>
+              <strong>{{ provider.name }}</strong>
+              <small>{{ provider.default_model }}</small>
+            </div>
+          </div>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <h2>{{ currentTitle }}</h2>
+            <span>{{ health.status === 'ok' ? '系统在线' : '检查服务状态' }} · {{ health.mode || 'local' }}</span>
+          </div>
+          <button class="icon-button" @click="refreshAll" title="刷新">
+            <i data-lucide="refresh-cw"></i>
+          </button>
+        </header>
+
+        <section v-if="activeTab === 'diagnosis'" class="diagnosis-grid">
+          <form class="query-panel" @submit.prevent="runQuery">
+            <div class="field-row">
+              <label>
+                设备类型
+                <select v-model="query.equipment">
+                  <option v-for="device in devices" :value="device.id">{{ device.label }}</option>
+                </select>
+              </label>
+              <label>
+                设备型号
+                <input v-model="query.model" placeholder="如 Y2-160M / ISG80-160 / 6205-2RS" />
+              </label>
+              <label>
+                检修等级
+                <select v-model="query.maintenance_level">
+                  <option v-for="level in levels" :value="level">{{ level }}</option>
+                </select>
+              </label>
+            </div>
+
+            <label>
+              故障描述
+              <textarea v-model="query.text" rows="5" placeholder="例：电机端盖温度升高，伴随低频振动和轴承异响"></textarea>
+            </label>
+
+            <div class="upload-row">
+              <label class="file-picker">
+                <i data-lucide="image-up"></i>
+                <span>{{ uploadedImage.filename || '上传故障图片' }}</span>
+                <input type="file" accept="image/*" @change="uploadImage" />
+              </label>
+              <div class="image-caption">
+                <strong>视觉描述</strong>
+                <span>{{ query.image_caption || '未上传图片时仅使用文本和型号检索' }}</span>
+              </div>
+            </div>
+
+            <button class="primary-button" type="submit" :disabled="loading">
+              <i data-lucide="search"></i>
+              <span>{{ loading ? '检索中...' : '生成检修方案' }}</span>
+            </button>
+          </form>
+
+          <section class="result-panel">
+            <div v-if="!result" class="empty-state">
+              <i data-lucide="wrench"></i>
+              <h3>等待输入检修问题</h3>
+              <p>选择设备、输入故障描述，可同时上传图片参与跨模态检索。</p>
+            </div>
+
+            <template v-else>
+              <div class="summary-strip">
+                <div>
+                  <span>置信度</span>
+                  <strong>{{ Math.round(result.confidence * 100) }}%</strong>
+                </div>
+                <div>
+                  <span>风险等级</span>
+                  <strong :class="'risk-' + result.risk_level">{{ riskLabel(result.risk_level) }}</strong>
+                </div>
+                <div>
+                  <span>人工复核</span>
+                  <strong>{{ result.human_review_required ? '需要' : '可选' }}</strong>
+                </div>
+              </div>
+
+              <article class="diagnosis-card">
+                <h3>故障判断</h3>
+                <p>{{ result.diagnosis }}</p>
+                <div class="chips">
+                  <span v-for="cause in result.possible_causes">{{ cause }}</span>
+                </div>
+              </article>
+
+              <div class="content-columns">
+                <article class="work-card">
+                  <h3>标准化作业指引</h3>
+                  <ol class="sop-list">
+                    <li v-for="step in result.sop_steps">{{ step }}</li>
+                  </ol>
+                </article>
+
+                <article class="work-card">
+                  <h3>合规校验</h3>
+                  <div v-for="item in result.compliance" class="compliance-row" :class="{pass: item.passed}">
+                    <i :data-lucide="item.passed ? 'check-circle-2' : 'alert-triangle'"></i>
+                    <div>
+                      <strong>{{ item.label }}</strong>
+                      <span>{{ item.evidence }}</span>
+                    </div>
+                  </div>
+                </article>
+              </div>
+
+              <article class="work-card">
+                <h3>模型复核意见</h3>
+                <p class="review-text">{{ result.model_review.text }}</p>
+                <small>供应商：{{ result.model_review.provider }} · {{ result.model_review.ok ? '已生成' : '本地兜底' }}</small>
+              </article>
+
+              <article class="work-card correction-card">
+                <h3>人工修正与标注</h3>
+                <label>修正后答案<textarea v-model="feedbackForm.corrected_answer" rows="7"></textarea></label>
+                <label>标注备注<input v-model="feedbackForm.notes" placeholder="如：步骤遗漏、风险等级偏低、引用不充分" /></label>
+                <button class="primary-button" type="button" @click="submitFeedback">
+                  <i data-lucide="file-check-2"></i>
+                  <span>记录修正</span>
+                </button>
+                <small v-if="feedbackStatus">{{ feedbackStatus }}</small>
+                <div v-if="result.feedback_hints && result.feedback_hints.length" class="feedback-hints">
+                  <strong>相似人工修正</strong>
+                  <div v-for="item in result.feedback_hints" class="citation">
+                    <p>{{ item.corrected_answer }}</p>
+                    <small>{{ item.created_at }} · {{ item.notes || item.question }}</small>
+                  </div>
+                </div>
+              </article>
+
+              <div class="content-columns">
+                <article class="work-card">
+                  <h3>引用证据</h3>
+                  <div v-for="citation in result.citations" class="citation">
+                    <strong>{{ citation.title }} · {{ citation.section }}</strong>
+                    <p>{{ citation.content }}</p>
+                    <small>{{ citation.source }} P{{ citation.page }} · {{ Math.round(citation.confidence * 100) }}%</small>
+                    <small v-if="citation.source_url">
+                      <a :href="citation.source_url" target="_blank" rel="noopener">来源链接</a>
+                      · {{ citation.license }}
+                    </small>
+                  </div>
+                </article>
+
+                <article class="work-card">
+                  <h3>多 Agent 编排</h3>
+                  <div v-for="agent in result.agents" class="agent-row">
+                    <span>{{ agent.agent }}</span>
+                    <strong>{{ agent.message }}</strong>
+                  </div>
+                </article>
+              </div>
+            </template>
+          </section>
+        </section>
+
+        <section v-if="activeTab === 'cases'" class="two-column">
+          <form class="work-card" @submit.prevent="submitCase">
+            <h3>一线案例上传</h3>
+            <label>标题<input v-model="caseForm.title" /></label>
+            <label>设备型号<input v-model="caseForm.model" /></label>
+            <label>故障现象<textarea v-model="caseForm.symptoms" rows="3"></textarea></label>
+            <label>原因分析<textarea v-model="caseForm.cause" rows="3"></textarea></label>
+            <label>处置措施<textarea v-model="caseForm.actions" rows="3"></textarea></label>
+            <button class="primary-button"><i data-lucide="send"></i><span>提交待审核</span></button>
+          </form>
+
+          <div class="work-card">
+            <h3>待审核案例</h3>
+            <div v-if="pendingCases.length === 0" class="muted">暂无待审核案例</div>
+            <div v-for="item in pendingCases" class="case-row">
+              <strong>{{ item.title }}</strong>
+              <p>{{ item.symptoms }}</p>
+              <button @click="approveCase(item.id)">审核入库</button>
+            </div>
+          </div>
+
+          <div class="work-card full-span">
+            <h3>人工修正记录</h3>
+            <div v-if="feedbackRecords.length === 0" class="muted">暂无人工修正记录</div>
+            <div v-for="item in feedbackRecords" class="case-row">
+              <strong>{{ item.question }}</strong>
+              <p>{{ item.corrected_answer }}</p>
+              <small>{{ item.created_at }} · {{ item.notes || '无备注' }}</small>
+            </div>
+          </div>
+        </section>
+
+        <section v-if="activeTab === 'graph'" class="work-card graph-card">
+          <h3>轻量知识图谱</h3>
+          <svg :viewBox="`0 0 960 520`" role="img">
+            <line v-for="edge in graphLayout.edges" :x1="edge.x1" :y1="edge.y1" :x2="edge.x2" :y2="edge.y2" class="edge"></line>
+            <g v-for="node in graphLayout.nodes" class="node">
+              <circle :cx="node.x" :cy="node.y" :r="node.r" :class="'node-' + node.type"></circle>
+              <text :x="node.x" :y="node.y + node.r + 16">{{ node.label }}</text>
+            </g>
+          </svg>
+        </section>
+
+        <section v-if="activeTab === 'metrics'" class="work-card">
+          <h3>量化评测面板</h3>
+          <div class="review-strip">
+            <div>
+              <span>案例审核</span>
+              <strong>{{ reviewStatus.cases.approved || 0 }}/{{ reviewStatus.targets.approved_cases || 100 }}</strong>
+              <small>未审核 {{ reviewStatus.cases.unreviewed || 0 }}</small>
+            </div>
+            <div>
+              <span>评测题审核</span>
+              <strong>{{ reviewStatus.eval_questions.approved || 0 }}/{{ reviewStatus.targets.approved_eval_questions || 100 }}</strong>
+              <small>当前评测：{{ metrics.latest && metrics.latest.review_basis === 'approved_only' ? '已审核题' : '未审核兜底' }}</small>
+            </div>
+          </div>
+          <div class="metric-grid">
+            <div v-for="item in metrics.benchmarks" class="metric-card">
+              <h4>{{ item.name }}</h4>
+              <div class="bar"><span :style="{width: Math.round(item.recall_at_5 * 100) + '%'}"></span></div>
+              <p>Recall@5 {{ Math.round(item.recall_at_5 * 100) }}%</p>
+              <p>引用覆盖 {{ Math.round(item.citation_coverage * 100) }}%</p>
+              <p>SOP 完整度 {{ Math.round(item.sop_score * 100) }}%</p>
+              <p>幻觉率 {{ Math.round(item.hallucination_rate * 100) }}%</p>
+              <p>安全漏检 {{ Math.round((item.safety_miss_rate || 0) * 100) }}%</p>
+            </div>
+          </div>
+          <div v-if="metrics.latest && metrics.latest.details" class="eval-details">
+            <h3>最新评测明细</h3>
+            <div v-for="detail in metrics.latest.details" class="citation">
+              <strong>{{ detail.question }}</strong>
+              <p>命中文档：{{ detail.hit_source_ids.join(', ') || '无' }} · SOP {{ Math.round(detail.sop_score * 100) }}%</p>
+              <small>安全缺口：{{ detail.safety_missing.join(', ') || '无' }}</small>
+            </div>
+          </div>
+        </section>
+
+        <section v-if="activeTab === 'resources'" class="two-column">
+          <div class="work-card">
+            <h3>资源与索引</h3>
+            <p class="muted">将维修手册 PDF/TXT/MD 放入 data/raw/manuals 后，可在这里触发入库和索引重建。</p>
+            <div class="action-grid">
+              <button @click="ingestManuals"><i data-lucide="file-input"></i><span>入库手册</span></button>
+              <button @click="rebuildIndex"><i data-lucide="database-zap"></i><span>重建索引</span></button>
+              <button @click="generateSampleData"><i data-lucide="layers-3"></i><span>生成样例</span></button>
+              <button @click="runEval(20)"><i data-lucide="activity"></i><span>快速评测</span></button>
+              <button @click="runEval(0)"><i data-lucide="timer"></i><span>完整评测</span></button>
+              <button @click="discoverModels"><i data-lucide="cpu"></i><span>探测模型</span></button>
+            </div>
+            <pre class="admin-output">{{ adminResult }}</pre>
+          </div>
+
+          <div class="work-card">
+            <h3>模型列表</h3>
+            <div class="route-list">
+              <div v-for="route in agentRoutes" class="route-row">
+                <strong>{{ route.label }}</strong>
+                <span>{{ route.provider }} / {{ route.model }}</span>
+                <small>{{ route.supported ? '已支持' : '未接入该能力' }} · {{ route.key_present ? 'key 已配置' : 'key 缺失' }}</small>
+              </div>
+            </div>
+            <div v-if="modelResults.length === 0" class="muted">尚未探测模型；未配置 key 时会显示缺失原因。</div>
+            <div v-for="provider in modelResults" class="citation">
+              <strong>{{ provider.provider }} · {{ provider.ok ? '可用' : '不可用' }}</strong>
+              <p v-if="provider.error">{{ provider.error }}</p>
+              <small>{{ (provider.models || []).slice(0, 18).join(', ') }}</small>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

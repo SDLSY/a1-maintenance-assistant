@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: a1-maintenance-assistant-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ACTIVE_MODEL_PROVIDER
+        value: codex
+      - key: CORS_ALLOWED_ORIGINS
+        value: "*"
+      - key: A1_DEMO_BOOTSTRAP_ON_STARTUP
+        value: "true"
+      - key: A1_DEMO_EXP_CASE_COUNT
+        value: "121"
+      - key: A1_DEMO_EXP_EVAL_COUNT
+        value: "100"
+      - key: A1_DEMO_REBUILD_INDEX_ON_STARTUP
+        value: "false"
+      - key: SUPABASE_ENABLED
+        value: "true"
+      - key: SUPABASE_SCHEMA
+        value: public
+      - key: SUPABASE_TABLE_PREFIX
+        value: a1_

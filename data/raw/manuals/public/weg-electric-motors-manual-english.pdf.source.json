@@ -1,0 +1,11 @@
+{
+  "id": "weg-electric-motors-manual",
+  "title": "Manual of Electric Motors",
+  "equipment": "motor",
+  "publisher": "WEG",
+  "source_url": "https://static.weg.net/medias/downloadcenter/ha6/h39/WEG-WMO-safe-area-50033244-manual-pt-en-es.pdf",
+  "license": "publicly accessible manufacturer documentation; redistribution not assumed",
+  "version": "current public PDF",
+  "downloaded_at": "2026-05-10T06:46:40",
+  "redistribution": "Do not commit or publish this PDF without checking the rights holder's terms."
+}

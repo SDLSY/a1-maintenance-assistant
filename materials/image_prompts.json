@@ -1,0 +1,100 @@
+{
+  "style": {
+    "model": "gpt-image-2",
+    "size": "1536x1024",
+    "quality": "medium",
+    "visual_direction": "realistic industrial maintenance, restrained blue-green technology overlay, high-contrast presentation background, no readable text inside images"
+  },
+  "assets": [
+    {
+      "id": "cover-industrial-ai",
+      "file": "01-cover-industrial-ai.png",
+      "model": "gpt-image-2",
+      "size": "1536x1024",
+      "quality": "high",
+      "slides": [1],
+      "prompt": "Use case: productivity-visual. Asset type: widescreen presentation hero background for an equipment maintenance AI system. Primary request: a realistic industrial workshop scene with an electric motor, centrifugal pump, and bearing assembly on a clean maintenance bench, with a technician inspecting the equipment and a subtle translucent AI retrieval interface overlay made of abstract panels and connecting lines. Scene/backdrop: modern manufacturing maintenance bay, organized tools, safety signage shapes without legible words. Style/medium: polished photorealistic industrial editorial image with restrained technology overlay. Composition/framing: 16:9 widescreen, strong negative space on the left for slide title, equipment cluster on the right, cinematic but practical. Lighting/mood: cool daylight mixed with soft workshop lighting, professional, reliable, high-value competition presentation. Color palette: steel gray, deep blue, teal accents, small safety yellow highlights. Constraints: no readable text, no logos, no brand marks, no watermark, no fantasy machinery, no unsafe behavior."
+    },
+    {
+      "id": "fragmented-knowledge",
+      "file": "02-fragmented-knowledge.png",
+      "model": "gpt-image-2",
+      "size": "1536x1024",
+      "quality": "medium",
+      "slides": [2, 3],
+      "prompt": "Use case: productivity-visual. Asset type: presentation background showing maintenance knowledge fragmentation. Primary request: open repair manuals, loose work orders, inspection photos, exploded mechanical diagrams, and handwritten field notes scattered across a workshop table, with faint disconnected digital nodes hovering above them. Scene/backdrop: industrial maintenance desk beside blurred motor and pump equipment. Style/medium: realistic documentary-style photo with clean data-visualization overlay. Composition/framing: widescreen, central scattered documents, enough darkened margin for slide text. Lighting/mood: slightly tense but professional, showing inefficiency and fragmented information. Color palette: paper white, graphite, steel blue, muted teal, small amber warning accents. Constraints: no readable text, no logos, no watermarks, documents may contain abstract lines only, no human faces."
+    },
+    {
+      "id": "system-architecture",
+      "file": "03-system-architecture.png",
+      "model": "gpt-image-2",
+      "size": "1536x1024",
+      "quality": "medium",
+      "slides": [4],
+      "prompt": "Use case: productivity-visual. Asset type: abstract system architecture background. Primary request: a layered digital architecture visualization connecting a web dashboard, FastAPI service layer, retrieval index, SQLite data store, knowledge graph, and cloud AI model nodes, represented with abstract icons and geometric blocks without readable labels. Scene/backdrop: dark-to-light industrial technology grid over subtle metal surface texture. Style/medium: clean 3D isometric technical visualization, professional slide background. Composition/framing: widescreen, five horizontal layers with gentle perspective, clear center path, space for overlay text boxes. Lighting/mood: precise, engineered, trustworthy. Color palette: deep navy, slate, cyan, teal, white highlights. Constraints: no readable text, no logos, no brand marks, no watermark, no clutter."
+    },
+    {
+      "id": "data-assets",
+      "file": "04-data-assets.png",
+      "model": "gpt-image-2",
+      "size": "1536x1024",
+      "quality": "medium",
+      "slides": [5],
+      "prompt": "Use case: productivity-visual. Asset type: data asset presentation illustration. Primary request: a curated industrial maintenance data library made of manuals, structured document chunks, inspection cases, evaluation cards, vector embeddings as glowing points, and a small mechanical knowledge graph, arranged around motor, pump, and bearing parts. Scene/backdrop: clean lab-style work surface with digital archive shelves in the background. Style/medium: semi-realistic 3D editorial visualization, polished competition deck style. Composition/framing: widescreen, data objects grouped in an organized arc, central empty area suitable for metric cards. Lighting/mood: orderly, evidence-based, academic and engineering-focused. Color palette: white, slate, cobalt blue, teal, small green highlights. Constraints: no readable text, no logos, no watermark, no random numbers, no brand names."
+    },
+    {
+      "id": "multimodal-retrieval",
+      "file": "05-multimodal-retrieval.png",
+      "model": "gpt-image-2",
+      "size": "1536x1024",
+      "quality": "high",
+      "slides": [6],
+      "prompt": "Use case: productivity-visual. Asset type: multimodal retrieval hero diagram background. Primary request: fault text, equipment model input, and a bearing defect image flow into a central AI retrieval hub, then branch into manual evidence, similar cases, knowledge graph nodes, and SOP output, all shown as abstract panels without readable text. Scene/backdrop: industrial control room with blurred maintenance equipment and digital projection. Style/medium: high-end 3D technical infographic background with realistic industrial elements. Composition/framing: widescreen, left-to-right flow, central luminous retrieval hub, clear negative space for overlay labels. Lighting/mood: focused, intelligent, practical. Color palette: navy, cyan, teal, white, subtle safety orange. Constraints: no readable text, no logos, no watermark, no fake UI words, no overly futuristic sci-fi."
+    },
+    {
+      "id": "sop-compliance",
+      "file": "06-sop-compliance.png",
+      "model": "gpt-image-2",
+      "size": "1536x1024",
+      "quality": "high",
+      "slides": [7],
+      "prompt": "Use case: productivity-visual. Asset type: safety and SOP presentation image. Primary request: a maintenance engineer wearing proper PPE performs lockout tagout and safety confirmation before inspecting an industrial pump and motor coupling, with checklist-like abstract UI panels floating nearby. Scene/backdrop: real factory maintenance area, clean equipment, pressure gauge shapes, tools laid out neatly. Style/medium: photorealistic industrial safety scene, polished for engineering competition presentation. Composition/framing: widescreen, engineer and equipment on right, checklist panels on left as abstract boxes without readable text. Lighting/mood: serious, safe, compliant, professional. Color palette: steel gray, blue, teal, safety yellow, small red lockout accents. Constraints: no readable text, no logos, no watermark, PPE must be correctly worn, no unsafe exposed live wiring, no dramatic sparks."
+    },
+    {
+      "id": "knowledge-loop",
+      "file": "07-knowledge-loop.png",
+      "model": "gpt-image-2",
+      "size": "1536x1024",
+      "quality": "medium",
+      "slides": [8],
+      "prompt": "Use case: productivity-visual. Asset type: knowledge update loop illustration. Primary request: a field maintenance case uploaded from a tablet, reviewed by an engineer, then transformed into a connected knowledge graph around equipment, fault, cause, step, risk, tool, and spare part nodes, all without readable labels. Scene/backdrop: workshop review desk connected to a digital graph wall. Style/medium: realistic plus clean data visualization overlay, professional slide art. Composition/framing: widescreen, tablet and reviewer on left, knowledge graph expanding on right, clear central flow. Lighting/mood: calm, controlled, auditable. Color palette: slate, white, teal, green, cobalt accents. Constraints: no readable text, no logos, no watermark, no human face closeups, no fantasy objects."
+    },
+    {
+      "id": "agent-orchestration",
+      "file": "08-agent-orchestration.png",
+      "model": "gpt-image-2",
+      "size": "1536x1024",
+      "quality": "medium",
+      "slides": [9],
+      "prompt": "Use case: productivity-visual. Asset type: multi-agent orchestration background. Primary request: six abstract AI agent nodes coordinate around a central industrial maintenance task, with streams for retrieval, vision, diagnosis, SOP, compliance, and knowledge update represented by icons and colored signal paths, no readable text. Scene/backdrop: dark clean technical control grid with subtle motor and bearing silhouettes. Style/medium: elegant 3D network visualization, business technical slide style. Composition/framing: widescreen, central hub with six surrounding nodes, enough space for table overlay. Lighting/mood: precise, collaborative, high-performance. Color palette: dark navy, cyan, teal, green, white highlights. Constraints: no readable text, no logos, no watermark, no humanoid robots, no cartoon style."
+    },
+    {
+      "id": "evaluation-dashboard",
+      "file": "09-evaluation-dashboard.png",
+      "model": "gpt-image-2",
+      "size": "1536x1024",
+      "quality": "medium",
+      "slides": [10, 11],
+      "prompt": "Use case: productivity-visual. Asset type: quantitative evaluation dashboard background. Primary request: a professional analytics dashboard for an industrial AI maintenance system showing abstract metric cards, comparison curves, recall indicators, citation coverage, SOP completeness, and safety risk checks without readable text. Scene/backdrop: clean operations center display wall with faint workshop equipment in background. Style/medium: realistic UI dashboard mockup with non-legible placeholder marks, polished slide background. Composition/framing: widescreen, dashboard panels on right, left side usable for explanatory overlay. Lighting/mood: analytical, rigorous, evidence-driven. Color palette: white, slate, cobalt blue, teal, green status accents, small amber caution accents. Constraints: no readable text, no real numbers, no logos, no watermark, no brand UI."
+    },
+    {
+      "id": "deployment-loop",
+      "file": "10-deployment-loop.png",
+      "model": "gpt-image-2",
+      "size": "1536x1024",
+      "quality": "medium",
+      "slides": [12, 13, 14, 15],
+      "prompt": "Use case: productivity-visual. Asset type: closing and deployment presentation background. Primary request: a lightweight local industrial application running on a rugged workstation in a factory, connected to cloud AI services and a local knowledge base, with a closed loop from equipment inspection to evidence retrieval, SOP guidance, review, and knowledge update, shown through abstract arrows and nodes without readable text. Scene/backdrop: modern factory maintenance station with motor and pump equipment nearby. Style/medium: photorealistic industrial scene plus restrained digital overlay, suitable as closing slide background. Composition/framing: widescreen, workstation and equipment on lower right, loop graphic spanning center, negative space for final messages. Lighting/mood: mature, deployable, competition-ready, grounded. Color palette: steel gray, deep blue, teal, green, subtle warm workshop light. Constraints: no readable text, no logos, no watermark, no exaggerated sci-fi, no unsafe scene."
+    }
+  ]
+}
