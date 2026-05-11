@@ -1,6 +1,6 @@
 # Multimodal Image Evaluation Assets
 
-This directory tracks the image set required for the A1 multimodal evaluation. The repository intentionally stores only the manifest and status report. Real images are not bundled in the submission archive because they may contain third-party copyright or field-site information.
+This directory tracks the image set required for the A1 multimodal evaluation. The current image set uses license-traced Wikimedia Commons candidates with source pages recorded in `commons_image_sources.json`.
 
 ## Required Scope
 
@@ -21,9 +21,16 @@ Acceptable sources:
 
 - Self-captured lab or workshop photos with school/team authorization.
 - Public industrial defect datasets whose license permits academic competition demonstration.
+- Wikimedia Commons files with clear Creative Commons or public-domain license metadata.
 - Vendor or manual images only when redistribution and presentation are explicitly allowed.
 
-After adding images, update the row:
+To refresh the public candidate images:
+
+```powershell
+.\.venv\Scripts\python.exe .\scripts\download_image_candidates.py
+```
+
+After adding or replacing images, update the row:
 
 - `review_status`: `approved` after the mechanical reviewer accepts the image and labels.
 - `reviewer`: use reviewer code such as `ME-R01`, not a real name.

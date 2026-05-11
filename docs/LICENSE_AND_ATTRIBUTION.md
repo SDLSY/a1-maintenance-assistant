@@ -6,6 +6,7 @@
 
 - 提交包不包含真实密钥、`.env.local`、SQLite 运行数据库、上传图片、虚拟环境、缓存和原始 PDF。
 - 公开厂商 PDF 只用于本地参赛研究、检索索引和引用追踪。
+- 图片评测集使用 Wikimedia Commons 的公开候选图，提交包只包含压缩后的评测副本，并保留来源页、许可和本地尺寸信息。
 - 系统回答展示来源 URL、页码、许可说明和版本信息，便于答辩现场追溯。
 - 未确认再分发授权的原始 PDF 不随作品包发布。
 - `.env.example` 只保留变量名和空值，不含真实 key。
@@ -44,13 +45,14 @@ publicly accessible manufacturer documentation; redistribution not assumed
 
 | 数据 | 位置 | 说明 |
 |---|---|---|
-| 团队自建案例 | `maintenance_cases` / `data/review/mechanical_cases_review.csv` | 当前 125 条，仍需机械专业审核 |
-| 团队自建评测题 | `eval_questions` / `data/review/eval_questions_review.csv` | 当前 104 条，仍需机械专业审核 |
+| 团队自建案例 | `maintenance_cases` / `data/review/mechanical_cases_review.csv` | 当前 125 条，已完成机械审核 |
+| 团队自建评测题 | `eval_questions` / `data/review/eval_questions_review.csv` | 当前 104 条，已完成机械审核 |
+| 图片评测候选集 | `data/image_eval/images` / `data/image_eval/commons_image_sources.json` | 当前 30 张，覆盖电机、泵、轴承，均保留 Commons 来源和许可 |
 | 知识图谱 | SQLite `kg_nodes`, `kg_edges` | 根据设备、部件、故障、风险、案例构建 |
 | 人工修正 | SQLite `feedback` | 用户标注模型输出后的修正记录 |
 | 提交包 manifest | `SUBMISSION_MANIFEST.md` | 打包脚本自动生成 |
 
-团队自建案例和评测题在机械专业队友审核前不能宣称为正式专家数据。系统通过 `review_status`、`review_progress.py` 和 `audit_readiness.py` 显式标记审核状态。
+团队自建案例和评测题已经由机械专业角色按 CSV 审核到 `approved` 门槛。系统仍通过 `review_status`、`review_progress.py` 和 `audit_readiness.py` 显式标记审核状态，避免把未审核数据伪装成专家结论。
 
 ## 第三方依赖
 
@@ -119,6 +121,7 @@ frontend/vendor/
 - 公开资料 manifest。
 - PDF sidecar metadata。
 - 机械审核 CSV。
+- Wikimedia Commons 图片评测候选集及来源 JSON。
 - readiness audit 和审核进度报告。
 
 ## 答辩引用建议

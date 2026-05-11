@@ -44,11 +44,42 @@ def test_submission_package_includes_image_eval_manifest(tmp_path: Path) -> None
     archive = build_submission_package(output_dir=tmp_path, timestamp="image-eval")
     with zipfile.ZipFile(archive) as package:
         names = set(package.namelist())
+        image_assets = [name for name in names if name.startswith("data/image_eval/images/")]
+        image_asset_size = sum(package.getinfo(name).file_size for name in image_assets)
 
     assert "data/image_eval/README.md" in names
     assert "data/image_eval/fault_image_eval_manifest.csv" in names
+    assert "data/image_eval/commons_image_sources.json" in names
     assert "docs/IMAGE_EVAL_STATUS.md" in names
-    assert not any(name.startswith("data/image_eval/images/") for name in names)
+    assert len(image_assets) >= 30
+    assert image_asset_size <= 40 * 1024 * 1024
+    assert not any(name.startswith("data/uploads/") for name in names)
+
+
+def test_commons_image_sources_cover_manifest() -> None:
+    import json
+    from scripts.image_eval_status import DEFAULT_MANIFEST, summarize_manifest
+
+    sources_path = ROOT / "data" / "image_eval" / "commons_image_sources.json"
+    assert sources_path.exists()
+    payload = json.loads(sources_path.read_text(encoding="utf-8"))
+    assert payload["provider"] == "Wikimedia Commons"
+    assert len(payload["images"]) >= 30
+    source_by_id = {item["id"]: item for item in payload["images"]}
+
+    result = summarize_manifest(DEFAULT_MANIFEST)
+    assert result["ready"] is True
+    assert result["available_images"] >= 30
+    assert result["approved_images"] >= 30
+
+    for item_id, item in source_by_id.items():
+        assert item_id
+        assert item["commons_page_url"].startswith("https://commons.wikimedia.org/wiki/File:")
+        assert item["license_short_name"]
+        assert item["local_path"].startswith("data/image_eval/images/")
+        assert item["local_size_bytes"] <= 4 * 1024 * 1024
+        assert item["local_width"] <= 1600
+        assert item["local_height"] <= 1600
 
 
 def test_image_eval_status_api_and_frontend_gate() -> None:

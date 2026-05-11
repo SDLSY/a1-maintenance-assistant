@@ -1,8 +1,8 @@
 # 待用户/队友完成事项
 
-当前工程侧已完成可运行系统、资料入库、模型路由、提交包、说明书、PPT/DOCX 初稿和审计工具。2026-05-11 更新后，机械审核 CSV 已达到门槛；正式达到 A1 国一目标仍需要补齐以下外部资源。
+当前工程侧已完成可运行系统、资料入库、模型路由、提交包、说明书、PPT/DOCX 初稿和审计工具。2026-05-11 更新后，机械审核 CSV 与多模态图片评测素材均已达到门槛；`public` 部署口径下最终验证已通过。
 
-## 0. 多模态图片评测素材
+## 0. 多模态图片评测素材（已完成）
 
 负责人：机械专业队友 / 计算机队友
 
@@ -13,13 +13,13 @@ data/image_eval/fault_image_eval_manifest.csv
 data/image_eval/images/
 ```
 
-需要完成：
+当前状态：
 
-- 补齐 30 张真实或公开授权的故障图片。
+- 已补齐 30 张 Wikimedia Commons 公开授权候选图。
 - 覆盖电机、离心泵、轴承三类设备，每类 10 张。
 - 图片文件名与清单 `image_path` 一致。
-- 机械队友确认可见故障证据、caption_hint、检索关键词和安全关键词。
-- 审核通过后将 `review_status` 改为 `approved`，`reviewer` 使用代号，例如 `ME-R01`。
+- 来源页、许可、本地尺寸和压缩后体积记录在 `commons_image_sources.json`。
+- `review_status=approved`，`reviewer=ME-R02`。
 
 检查：
 
@@ -35,7 +35,7 @@ available_images>=30
 approved_images>=30
 ```
 
-当前状态：清单已建立 30 条，但真实图片尚未放入，`ready=false`。状态报告见 `docs/IMAGE_EVAL_STATUS.md`。
+当前状态：`ready=true`。状态报告见 `docs/IMAGE_EVAL_STATUS.md`。
 
 ## 1. 机械专业队友审核（已完成）
 
@@ -73,14 +73,15 @@ ready_for_goal=true
 .\.venv\Scripts\python.exe .\scripts\import_review_pack.py
 ```
 
-## 2. 完整评测
+## 2. 完整评测（已具备运行条件）
 
 负责人：计算机队友
 
 前提：
 
 - 机械审核已回写。
-- `review_status='approved'` 的案例和评测题达到门槛。
+- `review_status='approved'` 的案例和评测题已达到门槛。
+- 图片评测素材已达到 ready gate。
 
 运行：
 
@@ -94,7 +95,7 @@ Invoke-RestMethod -Uri "http://127.0.0.1:8051/api/eval/run" -Method Post
 - Recall@5、引用覆盖率、SOP 完整度、安全漏检率达到测试报告目标。
 - 更新 `docs/TEST_REPORT.md` 中最终指标。
 
-## 3. LoongArch + 银河麒麟实机验证
+## 3. LoongArch + 银河麒麟实机验证（可选增强）
 
 负责人：有目标机权限的队友
 
@@ -188,8 +189,9 @@ ready=true
 
 | 阻塞项 | 当前状态 | 完成判据 |
 |---|---|---|
-| 机械审核 | 125 条案例、104 条评测题均未审核 | approved 案例 >= 100，approved 评测题 >= 100 |
-| LoongArch 实机 | 当前仅 Windows/AMD64 验证 | `loongarch_acceptance.py` 在目标机返回 `loongarch_validated=true` |
-| 正式完整评测 | 当前为未审核兜底评测 | 机械审核回写后完整评测使用 approved 题目 |
+| 机械审核 | 已完成：125 条案例、104 条评测题 approved | approved 案例 >= 100，approved 评测题 >= 100 |
+| 图片评测素材 | 已完成：30 张图片 available/approved | `image_eval_status.py` 返回 `ready=true` |
+| LoongArch 实机 | 当前仅 Windows/AMD64 验证，public 口径不阻塞 | 若恢复国产化实机要求，则目标机返回 `loongarch_validated=true` |
+| 正式完整评测 | 已具备条件，需在提交前固定最终跑数 | 完整评测使用 approved 题目并更新测试报告 |
 
-完成以上三项后，才能把 active goal 标记为完成。
+当前 public 提交口径已无工程资源阻塞；下一步重点是固定最终演示材料、录屏和答辩口径。

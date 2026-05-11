@@ -56,6 +56,15 @@ EXCLUDED_SUFFIXES = {
 
 def is_excluded(path: Path) -> bool:
     rel = path.relative_to(ROOT)
+    rel_posix = rel.as_posix()
+    if rel_posix.startswith("data/image_eval/images/") and path.suffix.lower() in {
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".webp",
+    }:
+        return False
     parts = set(rel.parts)
     if parts & EXCLUDED_DIRS:
         return True
@@ -74,12 +83,17 @@ def data_files() -> list[Path]:
         ROOT / "data" / "review" / "eval_questions_review.csv",
         ROOT / "data" / "image_eval" / "README.md",
         ROOT / "data" / "image_eval" / "fault_image_eval_manifest.csv",
+        ROOT / "data" / "image_eval" / "commons_image_sources.json",
     ]
 
     manuals_dir = ROOT / "data" / "raw" / "manuals"
     if manuals_dir.exists():
         candidates.extend(path for path in manuals_dir.glob("*.md"))
         candidates.extend(path for path in manuals_dir.rglob("*.source.json"))
+
+    image_dir = ROOT / "data" / "image_eval" / "images"
+    if image_dir.exists():
+        candidates.extend(path for path in image_dir.iterdir() if path.is_file())
     return candidates
 
 
@@ -127,15 +141,18 @@ This archive is a license-safe source and documentation package for the A1 maint
 - Public-source manifest and PDF sidecar metadata
 - Mechanical review CSV templates
 - Multimodal image evaluation manifest and status report
+- License-traced Wikimedia Commons image evaluation candidates
 
 ## Excluded
 
 - Real secrets: `.env`, `.env.local`
 - Runtime databases: `data/*.db`
 - Downloaded public PDFs: `data/raw/manuals/public/*.pdf`
-- Uploaded media, image evaluation binaries, caches, virtual environments, build output, and zip archives
+- Uploaded media, caches, virtual environments, build output, and zip archives
 
 PDF manuals are not redistributed by this package. The source URLs and license notes are retained in `data/sources/public_manual_sources.json` and `*.source.json` files for traceable re-download and citation.
+
+Image evaluation assets under `data/image_eval/images/` are curated public Wikimedia Commons thumbnails. Their source pages and license notes are retained in `data/image_eval/commons_image_sources.json`.
 
 ## File List
 
