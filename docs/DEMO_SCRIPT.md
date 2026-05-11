@@ -20,6 +20,7 @@ http://127.0.0.1:8051
 - 左侧模型供应商中 `codex` 和 `openrouter` 显示已配置。
 - “资源与模型”页中向量检索为 `openrouter / qwen/qwen3-embedding-8b`。
 - `docs/READINESS_AUDIT.md` 中公开资料、索引、模型路由、提交包均为 pass。
+- “资源与模型”页会显示图片评测 gate；若未补齐 30 张图片，状态应为 `blocked`，这是正式提交前需要补齐的真实素材缺口。
 
 ## 链路一：文本故障问诊
 

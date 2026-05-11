@@ -434,6 +434,13 @@ def review_status() -> dict:
         conn.close()
 
 
+@app.get("/api/image-eval/status")
+def image_eval_status() -> dict:
+    from scripts.image_eval_status import summarize_manifest
+
+    return summarize_manifest()
+
+
 @app.post("/api/eval/run")
 def run_eval(max_questions: int = 0) -> dict:
     conn = get_connection(DB_PATH)

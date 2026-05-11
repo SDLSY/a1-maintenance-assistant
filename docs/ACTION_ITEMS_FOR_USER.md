@@ -1,8 +1,43 @@
 # 待用户/队友完成事项
 
-当前工程侧已完成可运行系统、资料入库、模型路由、提交包、说明书、PPT/DOCX 初稿和审计工具。正式达到 A1 国一目标仍需要补齐以下外部资源。
+当前工程侧已完成可运行系统、资料入库、模型路由、提交包、说明书、PPT/DOCX 初稿和审计工具。2026-05-11 更新后，机械审核 CSV 已达到门槛；正式达到 A1 国一目标仍需要补齐以下外部资源。
 
-## 1. 机械专业队友审核
+## 0. 多模态图片评测素材
+
+负责人：机械专业队友 / 计算机队友
+
+输入文件：
+
+```text
+data/image_eval/fault_image_eval_manifest.csv
+data/image_eval/images/
+```
+
+需要完成：
+
+- 补齐 30 张真实或公开授权的故障图片。
+- 覆盖电机、离心泵、轴承三类设备，每类 10 张。
+- 图片文件名与清单 `image_path` 一致。
+- 机械队友确认可见故障证据、caption_hint、检索关键词和安全关键词。
+- 审核通过后将 `review_status` 改为 `approved`，`reviewer` 使用代号，例如 `ME-R01`。
+
+检查：
+
+```powershell
+.\.venv\Scripts\python.exe .\scripts\image_eval_status.py
+```
+
+目标：
+
+```text
+ready=true
+available_images>=30
+approved_images>=30
+```
+
+当前状态：清单已建立 30 条，但真实图片尚未放入，`ready=false`。状态报告见 `docs/IMAGE_EVAL_STATUS.md`。
+
+## 1. 机械专业队友审核（已完成）
 
 负责人：机械专业队友 / 指导老师
 
@@ -13,12 +48,12 @@ data/review/mechanical_cases_review.csv
 data/review/eval_questions_review.csv
 ```
 
-需要完成：
+当前状态：
 
-- 至少 100 条案例标记为 `approved`。
-- 至少 100 条评测题标记为 `approved`。
-- `reviewer` 填写审核人。
-- `needs_revision` 或 `rejected` 行填写 `review_notes`。
+- 125 条案例已标记为 `approved`。
+- 104 条评测题已标记为 `approved`。
+- `reviewer` 已使用代号填写。
+- 当前 `ready_for_goal=true`。
 
 审核后检查：
 

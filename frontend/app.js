@@ -32,6 +32,7 @@ createApp({
       graph: { nodes: [], edges: [] },
       metrics: { benchmarks: [] },
       reviewStatus: { cases: {}, eval_questions: {}, targets: {} },
+      imageEvalStatus: { by_equipment: {}, missing_paths: [] },
       modelResults: [],
       adminResult: "等待操作",
       caseForm: {
@@ -104,7 +105,7 @@ createApp({
       return res.json();
     },
     async refreshAll() {
-      const [health, devices, providers, routes, graph, metrics, reviewStatus, pending, feedback] = await Promise.all([
+      const [health, devices, providers, routes, graph, metrics, reviewStatus, imageEvalStatus, pending, feedback] = await Promise.all([
         this.api("/api/health"),
         this.api("/api/devices"),
         this.api("/api/providers"),
@@ -112,6 +113,7 @@ createApp({
         this.api("/api/knowledge-graph"),
         this.api("/api/metrics"),
         this.api("/api/review-status"),
+        this.api("/api/image-eval/status"),
         this.api("/api/cases?status=pending"),
         this.api("/api/feedback"),
       ]);
@@ -123,6 +125,7 @@ createApp({
       this.graph = graph;
       this.metrics = metrics;
       this.reviewStatus = reviewStatus;
+      this.imageEvalStatus = imageEvalStatus;
       this.pendingCases = pending.cases;
       this.feedbackRecords = feedback.feedback;
       this.paintIcons();

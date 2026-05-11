@@ -28,6 +28,9 @@ def collect_final_validation(
     loongarch = collect_acceptance(api_base_url=api_base_url)
 
     blockers: list[str] = []
+    for name, check in readiness["checks"].items():
+        if check["required"] and check["status"] != "pass":
+            blockers.append(name)
     if readiness["checks"]["mechanical_review"]["status"] != "pass":
         blockers.append("mechanical_review")
     if deployment_mode != "public" and readiness["checks"]["loongarch_runtime"]["status"] != "pass":

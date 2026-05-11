@@ -120,11 +120,20 @@ def _submission_summary(submission_archive: Path | str | None) -> dict:
         "has_source_manifest": "data/sources/public_manual_sources.json" in names,
         "has_case_review_csv": "data/review/mechanical_cases_review.csv" in names,
         "has_eval_review_csv": "data/review/eval_questions_review.csv" in names,
+        "has_image_eval_manifest": "data/image_eval/fault_image_eval_manifest.csv" in names,
+        "has_image_eval_readme": "data/image_eval/README.md" in names,
+        "has_image_eval_report": "docs/IMAGE_EVAL_STATUS.md" in names,
         "has_public_deploy_doc": "docs/DEPLOYMENT_PUBLIC.md" in names,
         "has_supabase_schema": "docs/SUPABASE_SCHEMA.sql" in names,
         "has_render_yaml": "render.yaml" in names,
         "has_cloudflare_prepare_script": "scripts/prepare_cloudflare_site.py" in names,
     }
+
+
+def _image_eval_summary() -> dict:
+    from scripts.image_eval_status import summarize_manifest
+
+    return summarize_manifest()
 
 
 def run_audit(
@@ -139,6 +148,7 @@ def run_audit(
     manifest = _manifest_summary()
     providers = _provider_summary()
     submission = _submission_summary(submission_archive)
+    image_eval = _image_eval_summary()
 
     review_case_rows = _count_csv_rows(ROOT / "data" / "review" / "mechanical_cases_review.csv")
     review_eval_rows = _count_csv_rows(ROOT / "data" / "review" / "eval_questions_review.csv")
@@ -201,10 +211,21 @@ def run_audit(
             and submission["has_source_manifest"]
             and submission["has_case_review_csv"]
             and submission["has_eval_review_csv"]
+            and submission["has_image_eval_manifest"]
+            and submission["has_image_eval_readme"]
+            and submission["has_image_eval_report"]
             else "fail",
             (
                 f"exists={submission['exists']}; entries={submission['entries']}; "
                 f"forbidden={len(submission['forbidden_entries'])}."
+            ),
+        ),
+        "image_eval_assets": _check(
+            "pass" if image_eval["ready"] else "blocked",
+            (
+                f"rows={image_eval['total']}; available={image_eval['available_images']}/"
+                f"{image_eval['required_images']}; approved={image_eval['approved_images']}/"
+                f"{image_eval['required_images']}; missing={image_eval['missing_images']}."
             ),
         ),
         "public_demo_deployment": _check(
@@ -238,6 +259,12 @@ def run_audit(
     if checks["cloud_model_routes"]["status"] != "pass":
         missing_resources.append("需要确认云端文本/视觉/embedding 模型 key 与路由在目标环境可用。")
 
+    if checks["image_eval_assets"]["status"] != "pass":
+        missing_resources.append(
+            "Need 30 authorized and mechanically approved fault images under data/image_eval/images/ "
+            "for the multimodal image evaluation gate."
+        )
+
     required_statuses = [check["status"] for check in checks.values() if check["required"]]
     ready = all(status == "pass" for status in required_statuses)
 
@@ -250,6 +277,10 @@ def run_audit(
             "public_source_equipment": manifest["equipment"],
             "review_case_rows": review_case_rows,
             "review_eval_rows": review_eval_rows,
+            "image_eval_rows": image_eval["total"],
+            "image_eval_available": image_eval["available_images"],
+            "image_eval_approved": image_eval["approved_images"],
+            "image_eval_missing": image_eval["missing_images"],
             "submission_entries": submission["entries"],
             "submission_forbidden_entries": len(submission["forbidden_entries"]),
         },

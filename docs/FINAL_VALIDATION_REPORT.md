@@ -1,17 +1,17 @@
 # Final Validation Report
 
-ready: `True`
+ready: `False`
 deployment_mode: `public`
 
 ## Blockers
 
-- None
+- `image_eval_assets`
 
 ## Summary
 
 | Area | Status |
 |---|---|
-| readiness | `True` |
+| readiness | `False` |
 | review_csv_goal | `True` |
 | loongarch_acceptance | `False` |
 | submission_forbidden_entries | `0` |
@@ -20,11 +20,13 @@ deployment_mode: `public`
 
 ```json
 {
-  "ready": true,
+  "ready": false,
   "deployment_mode": "public",
-  "blockers": [],
+  "blockers": [
+    "image_eval_assets"
+  ],
   "readiness": {
-    "ready": true,
+    "ready": false,
     "checks": {
       "web_system": "pass",
       "public_sources": "pass",
@@ -34,10 +36,13 @@ deployment_mode: `public`
       "case_and_eval_assets": "pass",
       "mechanical_review": "pass",
       "submission_package": "pass",
+      "image_eval_assets": "blocked",
       "public_demo_deployment": "pass",
       "loongarch_runtime": "blocked"
     },
-    "missing_resources": []
+    "missing_resources": [
+      "Need 30 authorized and mechanically approved fault images under data/image_eval/images/ for the multimodal image evaluation gate."
+    ]
   },
   "review": {
     "ready_for_goal": true,
@@ -56,7 +61,7 @@ deployment_mode: `public`
     }
   },
   "submission": {
-    "submission_entries": 99,
+    "submission_entries": 108,
     "submission_forbidden_entries": 0
   }
 }

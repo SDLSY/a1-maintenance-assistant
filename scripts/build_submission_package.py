@@ -72,6 +72,8 @@ def data_files() -> list[Path]:
         ROOT / "data" / "raw" / "manuals" / "README.md",
         ROOT / "data" / "review" / "mechanical_cases_review.csv",
         ROOT / "data" / "review" / "eval_questions_review.csv",
+        ROOT / "data" / "image_eval" / "README.md",
+        ROOT / "data" / "image_eval" / "fault_image_eval_manifest.csv",
     ]
 
     manuals_dir = ROOT / "data" / "raw" / "manuals"
@@ -124,13 +126,14 @@ This archive is a license-safe source and documentation package for the A1 maint
 - Public deployment descriptors such as `render.yaml` and `runtime.txt`
 - Public-source manifest and PDF sidecar metadata
 - Mechanical review CSV templates
+- Multimodal image evaluation manifest and status report
 
 ## Excluded
 
 - Real secrets: `.env`, `.env.local`
 - Runtime databases: `data/*.db`
 - Downloaded public PDFs: `data/raw/manuals/public/*.pdf`
-- Uploaded media, caches, virtual environments, build output, and zip archives
+- Uploaded media, image evaluation binaries, caches, virtual environments, build output, and zip archives
 
 PDF manuals are not redistributed by this package. The source URLs and license notes are retained in `data/sources/public_manual_sources.json` and `*.source.json` files for traceable re-download and citation.
 

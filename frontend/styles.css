@@ -671,6 +671,35 @@ textarea {
   font-weight: 700;
 }
 
+.image-eval-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 12px 0 14px;
+  padding: 12px;
+  border: 1px solid #d3b16f;
+  border-radius: 8px;
+  background: #fff8ea;
+}
+
+.image-eval-strip div {
+  display: grid;
+  gap: 4px;
+}
+
+.image-eval-strip span,
+.image-eval-strip small {
+  color: var(--muted);
+}
+
+.image-eval-strip strong {
+  font-size: 18px;
+}
+
+.image-eval-strip small {
+  grid-column: 1 / -1;
+}
+
 .admin-output {
   min-height: 180px;
   max-height: 360px;
