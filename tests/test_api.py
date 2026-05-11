@@ -63,6 +63,40 @@ def test_query_returns_sop_citations_and_compliance() -> None:
     assert body["model_review"]["provider"] in {"local", "openai", "opencode", "codex", "spatialai"}
 
 
+def test_query_returns_structured_agent_trace() -> None:
+    response = client.post(
+        "/api/query",
+        json={
+            "text": "电机轴承温升并伴随低频振动，要求生成可追溯检修流程",
+            "equipment": "motor",
+            "model": "Y2-160M",
+            "maintenance_level": "二级检修",
+            "image_caption": "轴承端盖附近有油污，疑似润滑脂污染和密封老化",
+            "top_k": 6,
+        },
+    )
+    assert response.status_code == 200
+    body = response.json()
+    agents = body["agents"]
+    assert {item["id"] for item in agents} >= {
+        "vision",
+        "retrieval",
+        "diagnosis",
+        "sop",
+        "compliance",
+        "knowledge_update",
+    }
+    for item in agents:
+        assert {"id", "agent", "status", "input", "output", "evidence", "confidence", "duration_ms", "next_action"} <= set(item)
+        assert 0 <= item["confidence"] <= 1
+        assert item["duration_ms"] >= 0
+    retrieval = next(item for item in agents if item["id"] == "retrieval")
+    assert retrieval["evidence"]["manual_hits"] == len(body["citations"])
+    assert retrieval["evidence"]["case_hits"] == len(body["similar_cases"])
+    knowledge = next(item for item in agents if item["id"] == "knowledge_update")
+    assert knowledge["status"] in {"ready", "pending_review"}
+
+
 def test_case_approval_updates_graph() -> None:
     created = client.post(
         "/api/cases",
@@ -189,6 +223,49 @@ def test_rebuild_index_and_eval_metrics() -> None:
     review = client.get("/api/review-status")
     assert review.status_code == 200
     assert review.json()["targets"]["approved_cases"] == 100
+
+
+def test_eval_comparison_runs_real_modes() -> None:
+    response = client.post("/api/eval/run-comparison?max_questions=4")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["question_count"] == 4
+    assert [item["mode"] for item in payload["benchmarks"]] == [
+        "no_rag",
+        "text_rag",
+        "multimodal_rag",
+        "full_system",
+    ]
+    for item in payload["benchmarks"]:
+        assert item["computed"] is True
+        assert item["question_count"] == 4
+        assert 0 <= item["recall_at_5"] <= 1
+        assert 0 <= item["citation_coverage"] <= 1
+        assert 0 <= item["sop_score"] <= 1
+        assert 0 <= item["hallucination_rate"] <= 1
+        assert 0 <= item["safety_miss_rate"] <= 1
+
+    metrics = client.get("/api/metrics")
+    assert metrics.status_code == 200
+    benchmarks = metrics.json()["benchmarks"]
+    assert [item["mode"] for item in benchmarks] == [
+        "no_rag",
+        "text_rag",
+        "multimodal_rag",
+        "full_system",
+    ]
+    assert all(item["computed"] is True for item in benchmarks)
+
+
+def test_frontend_exposes_agent_trace_and_comparison_controls() -> None:
+    index = (ROOT / "frontend" / "index.html").read_text(encoding="utf-8")
+    app_js = (ROOT / "frontend" / "app.js").read_text(encoding="utf-8")
+
+    assert "agent-card" in index
+    assert "agent.evidence" in index
+    assert "agent.next_action" in index
+    assert "runComparison" in app_js
+    assert "/api/eval/run-comparison" in app_js
 
 
 def test_submission_package_excludes_secrets_and_runtime_assets(tmp_path) -> None:

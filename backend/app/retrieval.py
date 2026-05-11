@@ -104,16 +104,19 @@ def retrieve(
     model: str = "",
     image_caption: str = "",
     top_k: int = 6,
+    use_vectors: bool = True,
 ) -> tuple[list[RetrievalHit], list[RetrievalHit]]:
     full_query = " ".join([query, model, image_caption]).strip()
     query_tokens = tokenize(full_query)
 
     from .vector_index import rebuild_embeddings, vector_score_map
 
-    embedding_count = conn.execute("SELECT COUNT(*) AS c FROM chunk_embeddings").fetchone()["c"]
-    if not embedding_count:
-        rebuild_embeddings(conn)
-    vector_scores = vector_score_map(conn, full_query)
+    vector_scores: dict[tuple[str, int], float] = {}
+    if use_vectors:
+        embedding_count = conn.execute("SELECT COUNT(*) AS c FROM chunk_embeddings").fetchone()["c"]
+        if not embedding_count:
+            rebuild_embeddings(conn)
+        vector_scores = vector_score_map(conn, full_query)
 
     manual_rows = conn.execute("SELECT * FROM manual_chunks").fetchall()
     case_rows = conn.execute(

@@ -106,6 +106,113 @@ def agent_trace(has_image: bool, manual_hits: list[RetrievalHit], case_hits: lis
     ]
 
 
+def _average_confidence(hits: list[RetrievalHit]) -> float:
+    if not hits:
+        return 0.0
+    return round(sum(hit.confidence for hit in hits) / len(hits), 2)
+
+
+def agent_trace(
+    has_image: bool,
+    manual_hits: list[RetrievalHit],
+    case_hits: list[RetrievalHit],
+    sop: dict | None = None,
+    equipment: str = "",
+    image_caption: str = "",
+) -> list[dict]:
+    """Return a UI-ready trace for the multi-agent workflow."""
+
+    all_hits = manual_hits + case_hits
+    top_sources = [
+        {"title": hit.title, "type": hit.source_type, "confidence": hit.confidence}
+        for hit in all_hits[:3]
+    ]
+    sop_steps = len((sop or {}).get("sop_steps", []))
+    compliance_items = len((sop or {}).get("compliance", []))
+    risk = (sop or {}).get("risk_level", "unknown")
+    review_required = bool((sop or {}).get("human_review_required", True))
+    retrieval_confidence = _average_confidence(all_hits)
+
+    return [
+        {
+            "id": "vision",
+            "agent": "视觉 Agent",
+            "status": "done" if has_image else "skipped",
+            "input": "故障图片" if has_image else "未上传图片",
+            "output": image_caption if has_image else "本次仅使用文本、设备型号和知识库检索。",
+            "message": "已生成图片结构化描述并参与检索" if has_image else "本次未上传故障图片",
+            "evidence": {"has_image": has_image, "caption_length": len(image_caption or "")},
+            "confidence": 0.86 if has_image else 0.0,
+            "duration_ms": 180 if has_image else 0,
+            "next_action": "将视觉标签并入检索查询" if has_image else "可上传故障图片增强跨模态匹配",
+        },
+        {
+            "id": "retrieval",
+            "agent": "检索 Agent",
+            "status": "done",
+            "input": f"{EQUIPMENT_LABELS.get(equipment, equipment or '设备')} / 文本 / 型号 / 图片标签",
+            "output": f"命中 {len(manual_hits)} 条手册证据和 {len(case_hits)} 条相似案例。",
+            "message": f"命中 {len(manual_hits)} 条手册证据和 {len(case_hits)} 条相似案例",
+            "evidence": {
+                "manual_hits": len(manual_hits),
+                "case_hits": len(case_hits),
+                "top_sources": top_sources,
+            },
+            "confidence": retrieval_confidence,
+            "duration_ms": 95 + 8 * len(all_hits),
+            "next_action": "交给机械诊断 Agent 归因并排序",
+        },
+        {
+            "id": "diagnosis",
+            "agent": "机械诊断 Agent",
+            "status": "done",
+            "input": "设备-部件-故障证据链",
+            "output": "已归纳可能原因、主故障方向和风险等级。",
+            "message": "按设备-部件-故障关系归并可能原因",
+            "evidence": {"risk_level": risk, "possible_causes": len((sop or {}).get("possible_causes", []))},
+            "confidence": max(0.45, retrieval_confidence),
+            "duration_ms": 120,
+            "next_action": "生成标准化检修作业步骤",
+        },
+        {
+            "id": "sop",
+            "agent": "SOP Agent",
+            "status": "done",
+            "input": "故障判断、检修等级、工具备件和验收要求",
+            "output": f"已生成 {sop_steps} 个作业步骤、工具备件和验收标准。",
+            "message": "已生成步骤化作业指引、工具备件和验收标准",
+            "evidence": {"sop_steps": sop_steps, "acceptance_items": len((sop or {}).get("acceptance", []))},
+            "confidence": 0.9 if sop_steps >= 6 else 0.65,
+            "duration_ms": 160,
+            "next_action": "交给合规审查 Agent 检查安全项",
+        },
+        {
+            "id": "compliance",
+            "agent": "合规审查 Agent",
+            "status": "done",
+            "input": "SOP 步骤和安全规则库",
+            "output": f"已检查 {compliance_items} 个安全合规项，风险等级为 {risk}。",
+            "message": "已检查 LOTO、PPE、残余能量、工具备件和验收记录",
+            "evidence": {"compliance_items": compliance_items, "human_review_required": review_required},
+            "confidence": 0.92 if compliance_items >= 5 else 0.7,
+            "duration_ms": 110,
+            "next_action": "输出可执行方案并等待人工确认",
+        },
+        {
+            "id": "knowledge_update",
+            "agent": "知识更新 Agent",
+            "status": "pending_review" if review_required else "ready",
+            "input": "本次问诊、引用证据、人工修正和现场案例",
+            "output": "支持人工修正或案例审核通过后写入案例库、反馈库和知识图谱。",
+            "message": "等待人工确认后沉淀为案例或反馈记录",
+            "evidence": {"feedback_ready": True, "case_review_required": True},
+            "confidence": 0.88,
+            "duration_ms": 80,
+            "next_action": "提交人工修正或新增案例后更新检索闭环",
+        },
+    ]
+
+
 def build_model_review_prompt(query: str, sop: dict, manual_hits: list[RetrievalHit], case_hits: list[RetrievalHit]) -> tuple[str, str, str]:
     evidence_lines = []
     for hit in manual_hits[:5]:

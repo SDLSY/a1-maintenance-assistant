@@ -19,7 +19,7 @@ from .database import (
     init_db,
     seed_if_empty,
 )
-from .evaluation import metrics_payload, review_summary, run_evaluation
+from .evaluation import metrics_payload, review_summary, run_comparison, run_evaluation
 from .ingestion import ingest_directory
 from .model_gateway import (
     agent_route_report,
@@ -278,7 +278,14 @@ def query(request: QueryRequest) -> dict:
         "citations": citations,
         "similar_cases": cases,
         "feedback_hints": feedback_hints,
-        "agents": agent_trace(bool(request.image_caption), manual_hits, case_hits),
+        "agents": agent_trace(
+            bool(request.image_caption),
+            manual_hits,
+            case_hits,
+            sop=sop,
+            equipment=request.equipment,
+            image_caption=request.image_caption,
+        ),
     }
 
 
@@ -432,5 +439,14 @@ def run_eval(max_questions: int = 0) -> dict:
     conn = get_connection(DB_PATH)
     try:
         return run_evaluation(conn, max_questions=max_questions)
+    finally:
+        conn.close()
+
+
+@app.post("/api/eval/run-comparison")
+def run_eval_comparison(max_questions: int = 20) -> dict:
+    conn = get_connection(DB_PATH)
+    try:
+        return run_comparison(conn, max_questions=max_questions)
     finally:
         conn.close()

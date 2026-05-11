@@ -174,3 +174,9 @@ flowchart LR
 - 机械专业 SOP：输出结构化作业步骤、工具备件、安全确认和验收标准。
 - 知识沉淀闭环：案例上传、审核、图谱更新、人工修正复用。
 - 量化评测：用评测面板和 readiness audit 明确证明系统效果与剩余缺口。
+## 2026-05-11 冲刺更新
+
+- `/api/query` 现在返回结构化 `agents` trace，每个 Agent 都包含 `id`、`status`、`input`、`output`、`evidence`、`confidence`、`duration_ms` 和 `next_action`，前端以 Agent 卡片展示视觉、检索、机械诊断、SOP、合规审查和知识更新 6 个环节。
+- 新增 `/api/eval/run-comparison`，按真实评测题计算 `no_rag`、`text_rag`、`multimodal_rag`、`full_system` 四组指标，并回填到 `/api/metrics` 供评测面板展示。
+- 对比评测使用快速词法检索路径，避免评测面板反复触发远程 embedding；常规问诊仍保留 OpenRouter embedding 向量召回。
+- 资源与模型页新增“四组对比评测”按钮，可在答辩时直接展示四组模式的 Recall@5、引用覆盖率、SOP 完整度、幻觉率和安全漏检率。

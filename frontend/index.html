@@ -185,9 +185,26 @@
 
                 <article class="work-card">
                   <h3>多 Agent 编排</h3>
-                  <div v-for="agent in result.agents" class="agent-row">
-                    <span>{{ agent.agent }}</span>
-                    <strong>{{ agent.message }}</strong>
+                  <div class="agent-flow">
+                    <div v-for="agent in result.agents" class="agent-card" :class="'agent-' + agent.status">
+                      <div class="agent-card-head">
+                        <strong>{{ agent.agent }}</strong>
+                        <span>{{ agent.status }}</span>
+                      </div>
+                      <p>{{ agent.output || agent.message }}</p>
+                      <dl class="agent-meta">
+                        <dt>输入</dt>
+                        <dd>{{ agent.input }}</dd>
+                        <dt>证据</dt>
+                        <dd>
+                          手册 {{ agent.evidence && agent.evidence.manual_hits !== undefined ? agent.evidence.manual_hits : '-' }}
+                          · 案例 {{ agent.evidence && agent.evidence.case_hits !== undefined ? agent.evidence.case_hits : '-' }}
+                          · 置信 {{ Math.round((agent.confidence || 0) * 100) }}%
+                        </dd>
+                        <dt>下一步</dt>
+                        <dd>{{ agent.next_action }}</dd>
+                      </dl>
+                    </div>
                   </div>
                 </article>
               </div>
@@ -278,6 +295,7 @@
             <h3>资源与索引</h3>
             <p class="muted">将维修手册 PDF/TXT/MD 放入 data/raw/manuals 后，可在这里触发入库和索引重建。</p>
             <div class="action-grid">
+              <button @click="runComparison(20)"><i data-lucide="bar-chart-3"></i><span>四组对比评测</span></button>
               <button @click="ingestManuals"><i data-lucide="file-input"></i><span>入库手册</span></button>
               <button @click="rebuildIndex"><i data-lucide="database-zap"></i><span>重建索引</span></button>
               <button @click="generateSampleData"><i data-lucide="layers-3"></i><span>生成样例</span></button>
@@ -308,6 +326,6 @@
       </main>
     </div>
 
-    <script src="/static/app.js"></script>
+    <script src="/static/app.js?v=agent-trace-comparison"></script>
   </body>
 </html>

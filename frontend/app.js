@@ -213,6 +213,12 @@ createApp({
       this.adminResult = JSON.stringify(result, null, 2);
       await this.refreshAll();
     },
+    async runComparison(maxQuestions = 20) {
+      const suffix = maxQuestions ? `?max_questions=${maxQuestions}` : "";
+      const result = await this.api(`/api/eval/run-comparison${suffix}`, { method: "POST" });
+      this.adminResult = JSON.stringify(result, null, 2);
+      await this.refreshAll();
+    },
     async discoverModels() {
       const result = await this.api("/api/models");
       this.modelResults = result.results;
