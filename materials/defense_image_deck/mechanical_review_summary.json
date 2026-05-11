@@ -1,0 +1,23 @@
+{
+  "cases_total": 125,
+  "cases_approved": 125,
+  "eval_total": 104,
+  "eval_approved": 104,
+  "case_reviewers": [
+    "ME-R01"
+  ],
+  "eval_reviewers": [
+    "ME-R01"
+  ],
+  "mechanical_accuracy_avg": 4.03,
+  "sop_completeness_avg": 3.94,
+  "safety_avg": 4.27,
+  "risk_distribution": {
+    "medium": 103,
+    "high": 22
+  },
+  "difficulty_distribution": {
+    "medium": 85,
+    "hard": 19
+  }
+}

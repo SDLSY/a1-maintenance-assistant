@@ -1,0 +1,28 @@
+{
+  "school": "",
+  "college": "",
+  "team_name": "",
+  "project_name": "设备检修知识检索与作业辅助系统",
+  "member_display_mode": "code",
+  "members": [
+    {
+      "code": "CS-R01",
+      "name": "",
+      "role": "系统架构 / 后端"
+    },
+    {
+      "code": "CS-R02",
+      "name": "",
+      "role": "前端 / 检索评测"
+    },
+    {
+      "code": "ME-R01",
+      "name": "",
+      "role": "机械 SOP / 案例审核"
+    }
+  ],
+  "advisor_display": false,
+  "advisor_name": "",
+  "advisor_title": "",
+  "footer_note": "第十五届“中国软件杯”A1 赛道"
+}

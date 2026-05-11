@@ -1,0 +1,98 @@
+{
+  "status": "ok",
+  "checks": {
+    "source_ppt_is_original_full_image_deck": true,
+    "polished_ppt_shape": true,
+    "final_image_only_deck_shape": true,
+    "final_image_only_xml_has_no_text": true,
+    "final_slide_images_exist": true,
+    "root_copy_matches_polished": true,
+    "pdf_preview_pages": true,
+    "speaker_notes_pages": true,
+    "qna_count": true,
+    "all_required_files_exist": true,
+    "ppt_sensitive_hits_empty": true,
+    "materials_sensitive_hits_empty": true
+  },
+  "source_ppt": {
+    "exists": true,
+    "slides": 14,
+    "pictures": 14,
+    "text_shapes": 0,
+    "xml_has_text": false,
+    "sha256": "7003e69cb7a47570c15c945baceab4c382710a158ffb0cc44c0c1858744efc6a",
+    "sensitive_hits": []
+  },
+  "polished_ppt": {
+    "exists": true,
+    "slides": 18,
+    "pictures": 20,
+    "text_shapes": 171,
+    "xml_has_text": true,
+    "sha256": "1bc8b1b37e9ba74f4815a67b90976a425b94a564e3e2e80de62cf0687af19db2",
+    "sensitive_hits": []
+  },
+  "final_image_only_ppt": {
+    "exists": true,
+    "slides": 18,
+    "pictures": 18,
+    "text_shapes": 0,
+    "xml_has_text": false,
+    "sha256": "ac0a9c732927c9c7ee2525748fc6ac31898273a6b1dc512a93c7709f47f26e93",
+    "sensitive_hits": []
+  },
+  "root_copy_ppt": {
+    "exists": true,
+    "slides": 18,
+    "pictures": 20,
+    "text_shapes": 171,
+    "xml_has_text": true,
+    "sha256": "1bc8b1b37e9ba74f4815a67b90976a425b94a564e3e2e80de62cf0687af19db2",
+    "sensitive_hits": []
+  },
+  "pdf_preview_pages": 18,
+  "final_slide_image_count": 18,
+  "markdown_counts": {
+    "speaker_notes_polished": 18,
+    "defense_qna": 18
+  },
+  "required_files": {
+    "materials\\defense_image_deck\\polish_notes.md": true,
+    "materials\\defense_image_deck\\speaker_notes_polished.md": true,
+    "materials\\defense_image_deck\\speaker_notes_10min.md": true,
+    "materials\\defense_image_deck\\defense_qna.md": true,
+    "materials\\defense_image_deck\\demo_runbook.md": true,
+    "materials\\defense_image_deck\\slide_qa_report.md": true,
+    "materials\\defense_image_deck\\completion_audit.md": true,
+    "materials\\defense_image_deck\\delivery_manifest.md": true,
+    "materials\\defense_image_deck\\final_image_only_delivery.md": true,
+    "materials\\defense_image_deck\\final_resource_checklist.md": true,
+    "materials\\defense_image_deck\\official_source_candidates.md": true,
+    "materials\\defense_image_deck\\rubric_alignment.md": true,
+    "materials\\defense_image_deck\\security_scan_report.md": true,
+    "materials\\defense_image_deck\\verification_report.md": true,
+    "materials\\defense_image_deck\\verification_report.json": true,
+    "materials\\defense_image_deck\\team_info.template.json": true,
+    "materials\\A1-maintenance-assistant-defense-image-only-final.pptx": true,
+    "materials\\A1-defense-delivery-pack.zip": true,
+    "scripts\\build_defense_delivery_pack.py": true,
+    "scripts\\build_defense_image_only_final.py": true,
+    "scripts\\polish_gpt_image_deck.py": true,
+    "scripts\\verify_defense_materials.py": true,
+    "tmp\\ppt_polished_preview\\contact_sheet.jpg": true,
+    "materials\\defense_image_deck\\final_image_only_contact_sheet.jpg": true,
+    "materials\\defense_image_deck\\real_screenshots\\01_text_query.png": true,
+    "materials\\defense_image_deck\\real_screenshots\\02_image_search.png": true,
+    "materials\\defense_image_deck\\real_screenshots\\03_sop_generation.png": true,
+    "materials\\defense_image_deck\\real_screenshots\\04_compliance_check.png": true,
+    "materials\\defense_image_deck\\real_screenshots\\05_case_review_update.png": true,
+    "materials\\defense_image_deck\\real_screenshots\\06_public_deploy_home.png": true,
+    "materials\\defense_image_deck\\real_screenshots\\07_public_health.png": true
+  },
+  "material_sensitive_hits": [],
+  "remaining_blockers": [
+    "school/team/member/advisor display rules are still user-provided and missing",
+    "public deployment should be rechecked on the formal defense day",
+    "final frontend screenshots should replace slide 15 if the UI is rebuilt"
+  ]
+}

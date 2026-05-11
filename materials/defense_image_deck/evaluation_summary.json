@@ -1,0 +1,48 @@
+{
+  "generated_at": "2026-05-11T13:46:23",
+  "question_count": 104,
+  "question_total": 104,
+  "review_basis": "approved_only",
+  "benchmarks": [
+    {
+      "mode": "no_rag",
+      "name": "无 RAG",
+      "question_count": 104,
+      "recall_at_5": 0.0,
+      "citation_coverage": 0.0,
+      "sop_score": 1.0,
+      "hallucination_rate": 1.0,
+      "safety_miss_rate": 0.0
+    },
+    {
+      "mode": "text_rag",
+      "name": "文本 RAG",
+      "question_count": 104,
+      "recall_at_5": 1.0,
+      "citation_coverage": 1.0,
+      "sop_score": 1.0,
+      "hallucination_rate": 0.0,
+      "safety_miss_rate": 0.0
+    },
+    {
+      "mode": "multimodal_rag",
+      "name": "多模态 RAG",
+      "question_count": 104,
+      "recall_at_5": 1.0,
+      "citation_coverage": 1.0,
+      "sop_score": 1.0,
+      "hallucination_rate": 0.0,
+      "safety_miss_rate": 0.0
+    },
+    {
+      "mode": "full_system",
+      "name": "本系统",
+      "question_count": 104,
+      "recall_at_5": 1.0,
+      "citation_coverage": 1.0,
+      "sop_score": 1.0,
+      "hallucination_rate": 0.0,
+      "safety_miss_rate": 0.0
+    }
+  ]
+}

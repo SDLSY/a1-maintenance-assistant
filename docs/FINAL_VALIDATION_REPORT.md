@@ -53,11 +53,11 @@ deployment_mode: `public`
       "python_modules": "pass",
       "database": "pass",
       "model_routes": "pass",
-      "api": "pass"
+      "api": "blocked"
     }
   },
   "submission": {
-    "submission_entries": 157,
+    "submission_entries": 169,
     "submission_forbidden_entries": 0
   }
 }
