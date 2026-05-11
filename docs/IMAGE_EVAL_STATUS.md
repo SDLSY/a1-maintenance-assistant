@@ -51,7 +51,7 @@ manifest: `D:\30726\Desktop\竞赛目录\a1-maintenance-assistant\data\image_eva
         "motor_damage": 1,
         "motor_damage_closeup": 1,
         "motor_disassembly": 1,
-        "bearing_structure": 1,
+        "motor_bearing_assembly": 1,
         "grease_seal_parts": 1,
         "bearing_mount": 1,
         "bearing_mount_inspection": 1
@@ -86,7 +86,7 @@ manifest: `D:\30726\Desktop\竞赛目录\a1-maintenance-assistant\data\image_eva
         "fretting_corrosion": 1,
         "false_brinelling_test": 1,
         "fretting_false_brinelling": 1,
-        "badly_worn_bearing": 1
+        "failed_bearing": 1
       }
     }
   },

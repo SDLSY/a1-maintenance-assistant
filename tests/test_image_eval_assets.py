@@ -82,6 +82,23 @@ def test_commons_image_sources_cover_manifest() -> None:
         assert item["local_height"] <= 1600
 
 
+def test_image_eval_rejects_known_non_photo_placeholders() -> None:
+    import csv
+    import json
+
+    manifest_path = ROOT / "data" / "image_eval" / "fault_image_eval_manifest.csv"
+    rows = list(csv.DictReader(manifest_path.open("r", newline="", encoding="utf-8-sig")))
+    manifest_paths = {row["image_path"] for row in rows}
+    source_payload = json.loads((ROOT / "data" / "image_eval" / "commons_image_sources.json").read_text(encoding="utf-8"))
+    titles = {item["title"] for item in source_payload["images"]}
+
+    assert "data/image_eval/images/motor_ball_bearing_diagram_01.png" not in manifest_paths
+    assert "data/image_eval/images/bearing_badly_worn_taper_01.jpg" not in manifest_paths
+    assert "File:Ball Bearing electric motor.png" not in titles
+    assert "File:Badly-worn taper roller bearing (Montagu, Cars and Motor-Cycles, 1928).jpg" not in titles
+    assert "File:Mechanical Seals by American Seal and Packing.jpg" not in titles
+
+
 def test_image_eval_status_api_and_frontend_gate() -> None:
     from backend.app.main import app
 

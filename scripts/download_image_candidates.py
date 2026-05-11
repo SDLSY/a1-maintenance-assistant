@@ -81,13 +81,13 @@ CANDIDATES = [
     },
     {
         "id": "IMG-MOTOR-007",
-        "title": "File:Ball Bearing electric motor.png",
-        "local_path": "data/image_eval/images/motor_ball_bearing_diagram_01.png",
-        "fault_type": "bearing_structure",
-        "visible_evidence": "电机轴承结构示意；适合检索轴承部件关系",
-        "caption_hint": "电机滚动轴承结构示意图，需要关联轴承游隙、润滑和安装偏斜检查。",
-        "expected_retrieval_keywords": "电机 轴承 游隙 润滑 安装",
-        "expected_safety_keywords": "LOTO PPE 游隙复测",
+        "title": "File:Motor Bearing parts.jpg",
+        "local_path": "data/image_eval/images/motor_bearing_parts_photo_01.jpg",
+        "fault_type": "motor_bearing_assembly",
+        "visible_evidence": "电机轴承零部件实物照片；可见轴承、端盖和密封相关部件",
+        "caption_hint": "电机轴承部件实物照片，需要检查轴承安装、润滑、密封、游隙和端盖配合状态。",
+        "expected_retrieval_keywords": "电机 轴承 部件 端盖 密封 润滑 游隙",
+        "expected_safety_keywords": "LOTO PPE 游隙复测 防误启动",
     },
     {
         "id": "IMG-MOTOR-008",
@@ -181,12 +181,12 @@ CANDIDATES = [
     },
     {
         "id": "IMG-PUMP-007",
-        "title": "File:Mechanical Seals by American Seal and Packing.jpg",
+        "title": "File:Mechanical seal part01.jpg",
         "local_path": "data/image_eval/images/pump_mechanical_seal_parts_01.jpg",
         "fault_type": "mechanical_seal_parts",
-        "visible_evidence": "机械密封组件；适合检索密封更换和装配流程",
-        "caption_hint": "泵机械密封组件可见，需要检查密封端面、O 形圈和安装方向。",
-        "expected_retrieval_keywords": "泵 机械密封 O形圈 密封端面 安装",
+        "visible_evidence": "机械密封实物照片；可见弹簧、密封环和端面结构",
+        "caption_hint": "泵机械密封实物部件可见，需要检查密封端面、弹簧、O 形圈和安装方向。",
+        "expected_retrieval_keywords": "泵 机械密封 弹簧 O形圈 密封端面 安装",
         "expected_safety_keywords": "隔离泄压 PPE 清洁装配",
     },
     {
@@ -311,12 +311,12 @@ CANDIDATES = [
     },
     {
         "id": "IMG-BEARING-010",
-        "title": "File:Badly-worn taper roller bearing (Montagu, Cars and Motor-Cycles, 1928).jpg",
-        "local_path": "data/image_eval/images/bearing_badly_worn_taper_01.jpg",
-        "fault_type": "badly_worn_bearing",
-        "visible_evidence": "严重磨损的圆锥滚子轴承；历史维修图像",
-        "caption_hint": "严重磨损滚子轴承，需要检查载荷、润滑不足和更换标准。",
-        "expected_retrieval_keywords": "轴承 严重磨损 滚子 载荷 润滑",
+        "title": "File:FailedBearing.jpg",
+        "local_path": "data/image_eval/images/bearing_failed_photo_01.jpg",
+        "fault_type": "failed_bearing",
+        "visible_evidence": "失效轴承实物照片；可见滚动体和保持结构异常",
+        "caption_hint": "轴承失效实物照片，需要检查润滑不足、异物污染、载荷冲击和更换标准。",
+        "expected_retrieval_keywords": "轴承 失效 损坏 滚动体 润滑 污染",
         "expected_safety_keywords": "PPE 禁止继续运行 更换复核",
     },
 ]
@@ -343,12 +343,40 @@ def _api_metadata(titles: list[str]) -> dict[str, dict]:
             "iiurlwidth": "900",
         }
     )
-    request = urllib.request.Request(
-        f"https://commons.wikimedia.org/w/api.php?{params}",
-        headers={"User-Agent": USER_AGENT},
-    )
-    with urllib.request.urlopen(request, timeout=40) as response:
-        payload = json.loads(response.read().decode("utf-8"))
+    api_url = f"https://commons.wikimedia.org/w/api.php?{params}"
+    payload: dict | None = None
+    last_error: Exception | None = None
+    for _ in range(3):
+        try:
+            request = urllib.request.Request(api_url, headers={"User-Agent": USER_AGENT})
+            with urllib.request.urlopen(request, timeout=40) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            break
+        except Exception as exc:  # noqa: BLE001
+            last_error = exc
+            time.sleep(2.0)
+    if payload is None:
+        curl = subprocess.run(
+            [
+                "curl.exe",
+                "-L",
+                "-A",
+                USER_AGENT,
+                "--retry",
+                "3",
+                "--retry-delay",
+                "2",
+                "--max-time",
+                "90",
+                api_url,
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if curl.returncode != 0:
+            raise RuntimeError(curl.stderr.strip() or curl.stdout.strip()) from last_error
+        payload = json.loads(curl.stdout)
 
     by_title: dict[str, dict] = {}
     for page in payload.get("query", {}).get("pages", {}).values():
@@ -448,6 +476,9 @@ def _download(url: str, target: Path, *, force: bool = False, fallback_url: str 
 
 def _optimize_image(target: Path) -> dict:
     from PIL import Image, ImageOps
+    from PIL import ImageFile
+
+    ImageFile.LOAD_TRUNCATED_IMAGES = True
 
     before_size = target.stat().st_size
     with Image.open(target) as original:
