@@ -1,87 +1,71 @@
-# A1 答辩 PPT 完成度审计
+# A1 国一冲刺目标完成审计
 
-审计时间：2026-05-11  
-目标：持续优化 A1 答辩 PPT，在现有 gpt-image-2 全图版基础上逐页审查文字、结构、可信度和答辩表达，形成更适合国一目标的最终版 PPT，并在缺少用户资源时明确反馈。
+审计时间：2026-05-12
 
-## 结论
+## 目标重述
 
-当前 PPT 已经完成“基于原 gpt-image-2 全图版的可交付润色版”，但 active goal 还不能标记 complete。
+本轮 active goal 是把 A1 多模态设备检修知识检索与作业辅助系统推进到可交付状态，具体成功标准为：
 
-不能完成的原因不是 PPT 主体缺失，而是最终提交版仍需要用户确认学校/队伍/成员/指导老师展示规则，并建议在正式答辩前再次复测公网部署和核心流程。若要继续增强可信度，还应补中国软件杯官网/报名系统内的 A1 页面截图、国产化配置/部署证据。
+- 补齐多 Agent 可视化：后端返回结构化 Agent trace，前端能展示检索、视觉、诊断、SOP、合规、知识更新等环节。
+- 补齐多模态图片评测：有真实可追溯图片集、manifest、来源说明、ready gate 和前端状态入口。
+- 补齐四组对比实验：无 RAG、文本 RAG、多模态 RAG、本系统四组能用真实评测题运行并出指标。
+- 补齐检修闭环演示：文本问诊、图片检索、SOP 生成、合规校验、案例审核/知识更新链路有系统截图和演示脚本。
+- 打磨参赛材料：有最终 PPT、讲稿、Q&A、演示 runbook、资源清单、赛题对齐表和交付包。
+- 完成部署与提交验证：公网部署、提交包、测试、审计、敏感信息检查均有命令证据。
+- 在需要外部资源时及时反馈：明确列出仍需用户确认的学校/队伍/指导老师展示规则、正式答辩日复测、官方截图等。
 
 ## Prompt-to-Artifact Checklist
 
-| 要求 | 证据 | 当前状态 | 判断 |
-|---|---|---:|---|
-| 基于现有 gpt-image-2 全图版优化 | 源文件 `materials/A1-maintenance-assistant-defense-gpt-image-2.pptx`，14 页、14 张图片、0 个文本框 | 已验证 | 通过 |
-| 不另起一套 V2，而是在源文件基础上润色 | 脚本 `scripts/polish_gpt_image_deck.py` 的 `SOURCE` 指向原文件；输出为 `A1-maintenance-assistant-defense-gpt-image-2-polished.pptx` | 已验证 | 通过 |
-| 逐页审查文字和答辩表达 | `materials/defense_image_deck/polish_notes.md` 覆盖 1-14 页逐页校正点；PPT 上有可编辑标题/口径层 | 已验证 | 通过 |
-| 保留全图版视觉风格 | polished PPT：18 页、20 张图片、171 个文本对象；前 14 页保留原始整页图 | 已验证 | 通过 |
-| 可编辑关键页 | 1-14 页新增可编辑标题/答辩口径；15-18 页为可编辑证据页 | 已验证 | 通过 |
-| 真实系统截图 | `real_screenshots/01_text_query.png` 至 `05_case_review_update.png`；第 15 页展示 | 已验证 | 通过 |
-| 技术证据 | 第 15 页真实截图，第 17 页机械审核，第 18 页公网部署验证 | 已验证 | 通过 |
-| 评测页优化 | `evaluation_summary.json`：104/104 已审核题；第 16 页自动评测表 | 已验证 | 通过，但需说明边界 |
-| 演示页优化 | 第 12 页演示路线，第 15 页真实系统截图 | 已验证 | 通过 |
-| 现场/视频演示脚本 | `demo_runbook.md` 已给出 5 分钟演示路线、固定输入、兜底截图和答辩当天检查清单 | 已验证 | 通过 |
-| 官方赛题依据 | `official_source_candidates.md` 已整理高校通知、龙芯中科认证账号赛题页和转载备份；第 3 页已加入审慎来源说明 | 已验证 | 通过，但仍建议补官网截图 |
-| 机械专业审核证据 | `mechanical_review_summary.json`：125/125 案例审核，104/104 评测题审核，reviewer 代号 `ME-R01` | 已验证 | 通过 |
-| 公网部署验证 | `deployment_summary.json`：Render URL、health `ok`、Supabase enabled；第 18 页已结构化展示 | 已验证 | 通过，但正式答辩前需复测 |
-| PDF 导出验证 | `tmp/ppt_polished_preview/A1-maintenance-assistant-defense-gpt-image-2-polished.pdf`，pdfinfo 显示 18 页 | 已验证 | 通过 |
-| 可视预览 | `tmp/ppt_polished_preview/contact_sheet.jpg` | 已生成 | 通过 |
-| 逐页 QA 审查 | `slide_qa_report.md` 已逐页标注当前状态、QA 结论和后续动作 | 已验证 | 通过 |
-| 逐页讲稿 | `speaker_notes_polished.md`，18 个页标题 | 已验证 | 通过 |
-| 8-10 分钟精简口播稿 | `speaker_notes_10min.md` 已覆盖开场、2-18 页讲法、结尾和禁用说法 | 已验证 | 通过 |
-| 答辩追问 Q&A | `defense_qna.md`，18 个问题 | 已验证 | 通过 |
-| 敏感信息检查 | `security_scan_report.md` 已扫描 PPT 文本和 `materials/defense_image_deck`，未命中密钥模式 | 已验证 | 通过 |
-| 自动验证脚本 | `scripts/verify_defense_materials.py` 已生成 `verification_report.md/json`，overall_status=ok | 已验证 | 通过 |
-| 封面信息注入准备 | `team_info.template.json` 已提供；`polish_gpt_image_deck.py` 支持读取可选 `team_info.json` 后自动注入封面 | 已验证 | 等用户填写 |
-| 交付清单总入口 | `delivery_manifest.md` 已汇总 PPT、讲稿、演示、证据、脚本、待用户补充项 | 已验证 | 通过 |
-| 离线答辩材料包 | `materials/A1-defense-delivery-pack.zip` 已生成，包含 PPT/PDF、文档、截图和数据摘要；压缩包条目已验证 | 已验证 | 通过 |
-| 赛题要求对齐 | `rubric_alignment.md` 已把 A1 功能要求、PPT 页码、证据文件和答辩口径对应起来 | 已验证 | 通过 |
-| 最终全图像答辩版 | `A1-maintenance-assistant-defense-image-only-final.pptx` 已生成；18 页、18 张整页图片、0 文本框、slide XML 无文本节点 | 已验证 | 通过 |
-| 最终全图像版预览 | `final_image_only_contact_sheet.jpg` 已生成，可快速检查 18 页主推版本 | 已验证 | 通过 |
-| 需要用户提供资源时及时反馈 | `final_resource_checklist.md` 和 `user_inputs_needed.md` | 已生成 | 未完全闭环 |
-
-## 当前主线文件
-
-- 源 PPT：`D:\30726\Desktop\竞赛目录\a1-maintenance-assistant\materials\A1-maintenance-assistant-defense-gpt-image-2.pptx`
-- 项目内润色版：`D:\30726\Desktop\竞赛目录\a1-maintenance-assistant\materials\A1-maintenance-assistant-defense-gpt-image-2-polished.pptx`
-- 便捷复制版：`D:\30726\Desktop\竞赛目录\A1全图版答辩PPT-基于原文件润色版.pptx`
-- 预览图：`D:\30726\Desktop\竞赛目录\a1-maintenance-assistant\tmp\ppt_polished_preview\contact_sheet.jpg`
-
-## 已验证数据
-
-- 原始全图版：14 页，14 张图片，0 个文本框，约 20.34 MB。
-- 润色版：18 页，20 张图片，171 个文本对象，约 22.03 MB。
-- PDF：18 页，16:9 页面尺寸，LibreOffice 可导出。
-- 逐页 QA：18 页状态、风险和后续动作已记录。
-- 讲稿：18 页。
-- 精简口播稿：8-10 分钟版本。
-- Q&A：18 条。
-- 敏感信息扫描：PPT 和答辩材料未命中密钥模式。
-- 自动验证报告：overall_status=ok。
-- 封面信息模板：已提供机器可读 `team_info.template.json`。
-- 交付清单：`delivery_manifest.md` 已汇总所有主线材料。
-- 离线答辩材料包：`materials/A1-defense-delivery-pack.zip` 已生成。
-- 赛题要求对齐表：`rubric_alignment.md` 已生成。
-- 最终全图像答辩版：18 页整页图片版已生成。
-- 演示 Runbook：5 分钟路线、固定输入、录制建议和兜底清单。
-- 自动评测：104 道已审核题。
-- 机械审核：125 条案例、104 道评测题。
-- 公网部署：`/api/health` 当前返回 `ok`，Supabase enabled。
-
-## 未闭环项
-
-| 优先级 | 缺口 | 影响 | 需要谁处理 |
+| 要求 | 具体证据 | 验证方式 | 结论 |
 |---|---|---|---|
-| P0 | 学校名称、队伍名称、成员/指导老师是否展示 | 封面和正式提交版不能最终定稿 | 用户 |
-| P0 | 正式答辩前公网冷启动和核心流程复测 | 当前部署证据只代表 2026-05-11 的状态 | 我可在答辩前复测 |
-| P1 | 中国软件杯官网/报名系统内 A1 页面截图 | 第 3 页可信度可继续增强 | 用户提供 |
-| P1 | 最终前端重构后的真实截图 | 第 15 页可替换为最终 UI | 前端重构完成后我截图 |
-| P1 | 评测集边界说明/抽样复核签字规则 | 避免 100% 指标被质疑 | 机械队友/用户 |
-| P2 | 国产模型配置截图或国产化部署证据 | 国产化主题加分 | 可选 |
+| 多 Agent 可视化 | `backend/app/agents.py`、`/api/query` 返回 `agents`；`frontend/index.html` 含 `agent-card`；`frontend/app.js` 渲染 `agent.evidence` 和 `agent.next_action` | `pytest tests/test_api.py::test_query_returns_structured_agent_trace`、`test_frontend_exposes_agent_trace_and_comparison_controls` 已纳入全量测试 | 完成 |
+| 四组对比实验 | `/api/eval/run-comparison`；前端资源页四组对比按钮；`materials/defense_image_deck/evaluation_summary.json` | `pytest tests/test_api.py::test_eval_comparison_runs_real_modes`；全量 `pytest -q` 通过 | 完成 |
+| 多模态图片评测 | `data/image_eval/fault_image_eval_manifest.csv`、`data/image_eval/commons_image_sources.json`、`data/image_eval/images/`、`docs/IMAGE_EVAL_STATUS.md` | `scripts/image_eval_status.py --json` 显示 30/30 available、30/30 approved、ready=true；`tests/test_image_eval_assets.py` 通过 | 完成 |
+| 真实图片修复 | 删除旧图解/宣传图路径；新增 `bearing_failed_photo_01.jpg`、`motor_bearing_parts_photo_01.jpg`；`pump_mechanical_seal_parts_01.jpg` 换为实物图 | 严格 PIL 读取 30/30 无坏图；`test_image_eval_rejects_known_non_photo_placeholders` 防回退 | 完成 |
+| 检修闭环演示 | `materials/defense_image_deck/real_screenshots/01_text_query.png` 至 `07_public_health.png`；`demo_runbook.md` | `scripts/verify_defense_materials.py` required_files 全部为 true | 完成 |
+| 案例上传审核与知识更新 | `/api/cases`、`/api/cases/{id}/approve`、`/api/knowledge-graph`；截图 `05_case_review_update.png` | `pytest tests/test_api.py::test_case_approval_updates_graph`；runbook 覆盖审核链路 | 完成 |
+| SOP 与合规 | `backend/app/compliance.py`、`backend/app/agents.py::build_sop`；截图 `03_sop_generation.png`、`04_compliance_check.png` | `pytest tests/test_api.py::test_query_returns_sop_citations_and_compliance` | 完成 |
+| 机械审核数据 | `data/review/mechanical_cases_review.csv`、`data/review/eval_questions_review.csv`；`mechanical_review_summary.json` | `scripts/review_progress.py`、`audit_readiness.py` 显示 cases approved=125、eval approved=104、unreviewed=0 | 完成 |
+| 最终全图像 PPT | `materials/A1-maintenance-assistant-defense-image-only-final.pptx`；`materials/defense_image_deck/final_image_only_slides/` 18 张 PNG | `scripts/verify_defense_materials.py`：18 slides、18 pictures、0 text_shapes、xml_has_text=false | 完成 |
+| PPT 生成与验证脚本 | `scripts/build_defense_image_deck.py`、`scripts/build_defense_image_only_final.py`、`scripts/build_defense_delivery_pack.py`、`scripts/verify_defense_materials.py` | `pytest tests/test_ppt_visuals.py -q` 通过；脚本 AST 检查通过 | 完成 |
+| 参赛材料包 | `materials/A1-defense-delivery-pack.zip` | 打包脚本显示包含最终 PPT、18 张 final_slides、docs、data_summaries、screenshots | 完成 |
+| 讲稿和 Q&A | `speaker_notes_polished.md`、`speaker_notes_10min.md`、`defense_qna.md` | `verify_defense_materials.py` 校验讲稿 18 页、Q&A 18 条 | 完成 |
+| 赛题要求对齐 | `materials/defense_image_deck/rubric_alignment.md` | 文件逐项映射 A1 功能要求、PPT 页码、系统证据和答辩口径 | 完成 |
+| 提交包审计 | `dist/a1-maintenance-assistant-submission-20260511-real-photo-fix.zip` | `scripts/audit_readiness.py --deployment-mode public --submission-archive ...` 返回 ready=true、forbidden=0 | 完成 |
+| 公网部署验证 | `https://a1-maintenance-assistant.onrender.com`；`deployment_summary.json`；`docs/FINAL_VALIDATION_REPORT.md` | `scripts/final_validation.py --deployment-mode public --api-base-url https://a1-maintenance-assistant.onrender.com ...` 返回 ready=true、blockers=[] | 完成 |
+| 全量测试 | 后端、前端静态检查、评测、PPT、图片评测等测试 | `pytest -q` 返回 40 passed | 完成 |
+| 敏感信息检查 | `security_scan_report.md`、`verification_report.json` | `materials_sensitive_hits_empty=true`，PPT sensitive hits empty | 完成 |
+| 外部资源反馈 | `user_inputs_needed.md`、`final_resource_checklist.md` | 明确 P0/P1/P2 需要用户确认的资源和边界 | 完成 |
 
-## 是否可以标记 goal complete
+## 当前最终证据
 
-不能。  
-原因：objective 明确包含“在需要用户提供系统截图、真实评测数据或学校/赛事信息时及时反馈”。当前已反馈并生成清单，但学校/队伍/指导老师展示规则仍未收到；正式提交版还无法完全定稿。
+- 最新关键提交：
+  - `bd053c0 Replace image eval placeholders with real photos`
+  - `beb21a3 Add final image-only defense materials`
+- 系统验证：
+  - `pytest -q`：40 passed。
+  - `scripts/audit_readiness.py --deployment-mode public ...`：ready=true，submission_forbidden_entries=0。
+  - `scripts/final_validation.py --deployment-mode public ...`：ready=true，blockers=[]。
+  - `scripts/verify_defense_materials.py`：overall status ok。
+- 数据资产：
+  - 13 份文档，1108 条 manual chunks，1092 条带 source URL。
+  - 125 条 approved 案例，104 条 approved 评测题。
+  - 30 张图片评测图，30 available，30 approved，missing=0。
+  - 远程 embedding 模型 `qwen/qwen3-embedding-8b` 向量记录 1233 条。
+- 答辩材料：
+  - 最终全图像 PPT：18 页、18 张整页图片、0 个文本框。
+  - 交付包：`materials/A1-defense-delivery-pack.zip`，包含最终 PPT、18 张最终页图、演示截图、讲稿、Q&A、runbook 和审计文件。
+
+## 剩余外部确认项
+
+这些项不阻塞当前工程目标，但正式提交/答辩前应确认：
+
+- 学校、队伍名、成员、指导老师是否允许展示，以及展示真实姓名还是代号。
+- 正式答辩当天重新冷启动公网服务并复测 `/api/health`、文本问诊、图片检索、SOP、案例审核、评测面板。
+- 若报名系统或官网能进入 A1 赛题详情页，建议补一张官方页面截图放入材料证据库。
+- 若后续前端 UI 大改，需要重新截取第 15 页真实系统截图。
+- LoongArch/银河麒麟实机验证已按用户后续决策降级为可选增强项；当前 public 交付路径不把它作为 blocker。
+
+## 审计结论
+
+按当前 active goal 的范围，系统功能、数据资产、多 Agent 可视化、多模态图片评测、四组对比实验、检修闭环演示、参赛材料、部署验证和外部资源反馈均已有可追溯证据。未完成项均属于正式答辩前人工确认或可选增强，不再阻塞本轮国一冲刺工程目标。
