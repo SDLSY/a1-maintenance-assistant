@@ -4,6 +4,7 @@ import base64
 import json
 import mimetypes
 import os
+import re
 import urllib.error
 import urllib.request
 from dataclasses import dataclass
@@ -188,7 +189,13 @@ def safe_provider_report() -> list[dict]:
     ]
 
 
-def _request_json(url: str, headers: dict[str, str], payload: dict | None = None) -> dict:
+def _request_json(
+    url: str,
+    headers: dict[str, str],
+    payload: dict | None = None,
+    *,
+    timeout_seconds: float | None = None,
+) -> dict:
     request_headers = dict(headers)
     if not any(key.lower() == "user-agent" for key in request_headers):
         request_headers["User-Agent"] = (
@@ -197,7 +204,8 @@ def _request_json(url: str, headers: dict[str, str], payload: dict | None = None
         )
     data = None if payload is None else json.dumps(payload).encode("utf-8")
     request = urllib.request.Request(url, data=data, headers=request_headers, method="GET" if data is None else "POST")
-    with urllib.request.urlopen(request, timeout=90) as response:
+    timeout = timeout_seconds if timeout_seconds is not None else settings.model_request_timeout_seconds
+    with urllib.request.urlopen(request, timeout=timeout) as response:
         return json.loads(response.read().decode("utf-8"))
 
 
@@ -272,6 +280,9 @@ def generate_text(
                     ],
                     "temperature": 0.2,
                 },
+                timeout_seconds=settings.compliance_request_timeout_seconds
+                if role == "compliance"
+                else settings.model_request_timeout_seconds,
             )
             text = data["choices"][0]["message"]["content"]
             return {"ok": True, "provider": selected_provider, "model": selected_model, "text": text}
@@ -305,6 +316,9 @@ def generate_text(
                     "system": system,
                     "messages": [{"role": "user", "content": user}],
                 },
+                timeout_seconds=settings.compliance_request_timeout_seconds
+                if role == "compliance"
+                else settings.model_request_timeout_seconds,
             )
             text = "".join(part.get("text", "") for part in data.get("content", []))
             return {"ok": True, "provider": "spatialai", "model": selected_model, "text": text}
@@ -379,6 +393,7 @@ def caption_image_file(path: str, fallback_caption: str) -> dict:
                 ],
                 "temperature": 0.1,
             },
+            timeout_seconds=settings.vision_request_timeout_seconds,
         )
         return {
             "ok": True,
@@ -393,6 +408,114 @@ def caption_image_file(path: str, fallback_caption: str) -> dict:
             "model": selected_model,
             "error": str(exc),
             "caption": fallback_caption,
+        }
+
+
+def _extract_json_object(text: str) -> dict:
+    cleaned = (text or "").strip()
+    if cleaned.startswith("```"):
+        cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\s*```$", "", cleaned)
+    start = cleaned.find("{")
+    end = cleaned.rfind("}")
+    if start >= 0 and end > start:
+        cleaned = cleaned[start : end + 1]
+    parsed = json.loads(cleaned)
+    if not isinstance(parsed, dict):
+        raise ValueError("visual analysis JSON root must be an object")
+    return parsed
+
+
+def analyze_image_file(path: str, fallback_analysis: dict) -> dict:
+    """Ask the configured VLM for structured inspection JSON, falling back locally."""
+    selected_provider = settings.provider_for_role("vision")
+    selected_model = settings.model_for_role("vision") or _default_model_for(selected_provider, "vision")
+    fallback = {
+        **fallback_analysis,
+        "ok": selected_provider == "local",
+        "provider": "local" if selected_provider == "local" else selected_provider,
+        "model": "local-visual-rules" if selected_provider == "local" else selected_model,
+    }
+    mime = mimetypes.guess_type(path)[0] or "image/png"
+    if selected_provider not in {"openai", "opencode", "codex"}:
+        return {
+            **fallback,
+            "ok": False if selected_provider != "local" else True,
+            "error": "" if selected_provider == "local" else f"{selected_provider} vision route is not enabled",
+        }
+    if not selected_model:
+        return {**fallback, "ok": False, "provider": selected_provider, "model": "", "error": "vision model not configured"}
+
+    base_url, api_key, selected_model = _openai_base_key_model(
+        selected_provider, "vision", selected_model
+    )
+    if not base_url or not api_key:
+        return {
+            **fallback,
+            "ok": False,
+            "provider": selected_provider,
+            "model": selected_model,
+            "error": "base_url or key missing",
+        }
+
+    prompt = """
+你是工业设备检修视觉分析员。请只输出 JSON，不要 Markdown。
+字段固定如下：
+{
+  "caption": "一句中文概述",
+  "equipment_candidates": [{"id":"bearing|pump|motor|engine|general","label":"中文设备","confidence":0.0}],
+  "component_candidates": [{"label":"部件名称","confidence":0.0}],
+  "defect_labels": [{"label":"缺陷/故障标签","confidence":0.0}],
+  "ocr_text": "图中可读文字，没有则为空字符串",
+  "flowchart": {"nodes":[{"id":"n1","label":"节点"}],"edges":[{"source":"n1","target":"n2","label":"关系"}],"summary":"流程图摘要，没有则为空"},
+  "risk_hints": ["安全风险或合规提醒"],
+  "retrieval_keywords": ["用于检索的关键词"]
+}
+只允许上述字段，confidence 使用 0 到 1 的数字。重点识别轴承、泵、电机、发动机检修场景。
+""".strip()
+    try:
+        with open(path, "rb") as handle:
+            image_bytes = handle.read()
+        image_url = f"data:{mime};base64,{base64.b64encode(image_bytes).decode('ascii')}"
+        data = _request_json(
+            f"{base_url.rstrip('/')}/chat/completions",
+            {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            {
+                "model": selected_model,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {"type": "image_url", "image_url": {"url": image_url}},
+                        ],
+                    }
+                ],
+                "temperature": 0.0,
+            },
+            timeout_seconds=settings.vision_request_timeout_seconds,
+        )
+        text = data["choices"][0]["message"]["content"]
+        parsed = _extract_json_object(text)
+        return {
+            **fallback_analysis,
+            **parsed,
+            "ok": True,
+            "provider": selected_provider,
+            "model": selected_model,
+            "error": "",
+        }
+    except Exception as exc:  # noqa: BLE001
+        return {
+            **fallback,
+            "ok": False,
+            "provider": selected_provider,
+            "model": selected_model,
+            "error": str(exc),
         }
 
 
@@ -441,6 +564,7 @@ def embed_texts(texts: list[str]) -> dict:
                 "model": selected_model,
                 "input": texts,
             },
+            timeout_seconds=settings.embedding_request_timeout_seconds,
         )
         ordered = sorted(data.get("data", []), key=lambda item: item.get("index", 0))
         return {

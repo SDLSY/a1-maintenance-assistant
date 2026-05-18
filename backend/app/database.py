@@ -10,7 +10,7 @@ from .seed_data import CASES, EVAL_QUESTIONS, KG_EDGES, KG_NODES, MANUAL_CHUNKS
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = PROJECT_ROOT / "data"
-UPLOAD_DIR = DATA_DIR / "uploads"
+UPLOAD_DIR = Path(os.getenv("A1_UPLOAD_DIR", str(DATA_DIR / "uploads")))
 DB_PATH = Path(os.getenv("A1_DB_PATH", str(DATA_DIR / "maintenance.db")))
 
 
@@ -18,8 +18,13 @@ def get_connection(db_path: Path | str = DB_PATH) -> sqlite3.Connection:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     Path(db_path).parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(db_path, timeout=30.0)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA busy_timeout = 30000")
+    try:
+        conn.execute("PRAGMA journal_mode = WAL")
+    except sqlite3.OperationalError:
+        pass
     return conn
 
 
@@ -71,6 +76,35 @@ def init_db(conn: sqlite3.Connection) -> None:
             parts TEXT NOT NULL,
             risk_level TEXT NOT NULL,
             status TEXT NOT NULL DEFAULT 'pending',
+            work_order_status TEXT NOT NULL DEFAULT 'pending_review',
+            approved_at TEXT DEFAULT '',
+            created_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS visual_assets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            filename TEXT NOT NULL,
+            stored_path TEXT NOT NULL,
+            mime_type TEXT DEFAULT '',
+            caption TEXT NOT NULL,
+            equipment TEXT DEFAULT '',
+            component TEXT DEFAULT '',
+            defect_labels TEXT DEFAULT '[]',
+            ocr_text TEXT DEFAULT '',
+            flowchart_json TEXT DEFAULT '{}',
+            analysis_json TEXT NOT NULL,
+            provider TEXT DEFAULT 'local',
+            model TEXT DEFAULT '',
+            ok INTEGER NOT NULL DEFAULT 1,
+            manifest_id TEXT DEFAULT '',
+            source_url TEXT DEFAULT '',
+            source_note TEXT DEFAULT '',
+            license_note TEXT DEFAULT '',
+            review_status TEXT DEFAULT 'unreviewed',
+            reviewer TEXT DEFAULT '',
+            sha256 TEXT DEFAULT '',
+            width INTEGER DEFAULT 0,
+            height INTEGER DEFAULT 0,
             created_at TEXT NOT NULL
         );
 
@@ -108,6 +142,102 @@ def init_db(conn: sqlite3.Connection) -> None:
             UNIQUE(source_type, source_id, model)
         );
 
+        CREATE TABLE IF NOT EXISTS query_embeddings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            query_hash TEXT NOT NULL,
+            model TEXT NOT NULL,
+            dim INTEGER NOT NULL,
+            vector_json TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            UNIQUE(query_hash, model)
+        );
+
+        CREATE TABLE IF NOT EXISTS standard_3d_models (
+            id TEXT PRIMARY KEY,
+            equipment TEXT NOT NULL,
+            model_code TEXT DEFAULT '',
+            title TEXT NOT NULL,
+            source_type TEXT NOT NULL DEFAULT 'procedural',
+            mesh_path TEXT DEFAULT '',
+            preview_path TEXT DEFAULT '',
+            source_url TEXT DEFAULT '',
+            embed_url TEXT DEFAULT '',
+            attribution TEXT DEFAULT '',
+            asset_status TEXT DEFAULT '',
+            viewer_mode TEXT DEFAULT '',
+            processed_mesh_path TEXT DEFAULT '',
+            processed_mesh_url TEXT DEFAULT '',
+            source_cad_path TEXT DEFAULT '',
+            sidecar_path TEXT DEFAULT '',
+            conversion_report TEXT DEFAULT '',
+            license_json TEXT DEFAULT '{}',
+            node_bindings_json TEXT DEFAULT '{}',
+            inspection_views_json TEXT DEFAULT '[]',
+            explode_steps_json TEXT DEFAULT '[]',
+            version TEXT DEFAULT '',
+            license_note TEXT DEFAULT '',
+            created_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS model_components (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            model_id TEXT NOT NULL,
+            component_key TEXT NOT NULL,
+            label TEXT NOT NULL,
+            geometry_json TEXT NOT NULL,
+            hotspot_json TEXT NOT NULL,
+            fault_tags TEXT DEFAULT '[]',
+            safety_tags TEXT DEFAULT '[]',
+            manual_keywords TEXT DEFAULT '[]',
+            UNIQUE(model_id, component_key)
+        );
+
+        CREATE TABLE IF NOT EXISTS reconstruction_jobs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            mode TEXT NOT NULL,
+            status TEXT NOT NULL,
+            equipment TEXT DEFAULT '',
+            visual_asset_id INTEGER,
+            input_paths_json TEXT DEFAULT '[]',
+            provider TEXT DEFAULT 'cached_demo',
+            result_type TEXT DEFAULT '',
+            result_path TEXT DEFAULT '',
+            preview_path TEXT DEFAULT '',
+            confidence REAL DEFAULT 0,
+            limitations TEXT DEFAULT '',
+            log_json TEXT DEFAULT '{}',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS candidate_cad_assets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            visual_asset_id INTEGER,
+            equipment TEXT NOT NULL,
+            model TEXT DEFAULT '',
+            source_photo_path TEXT DEFAULT '',
+            generator TEXT NOT NULL DEFAULT 'cadquery_openscad',
+            status TEXT NOT NULL DEFAULT 'needs_review',
+            observation_json TEXT NOT NULL,
+            cad_spec_json TEXT NOT NULL,
+            code_artifacts_json TEXT NOT NULL DEFAULT '{}',
+            render_artifacts_json TEXT NOT NULL DEFAULT '{}',
+            render_report_json TEXT NOT NULL DEFAULT '{}',
+            vlm_compare_json TEXT NOT NULL DEFAULT '{}',
+            risk_boundary_json TEXT NOT NULL DEFAULT '{}',
+            editable_spec_json TEXT NOT NULL DEFAULT '{}',
+            artifact_manifest_json TEXT NOT NULL DEFAULT '{}',
+            runtime_report_json TEXT NOT NULL DEFAULT '{}',
+            comparison_report_json TEXT NOT NULL DEFAULT '{}',
+            promotion_json TEXT NOT NULL DEFAULT '{}',
+            artifact_dir TEXT DEFAULT '',
+            reviewer TEXT DEFAULT '',
+            review_notes TEXT DEFAULT '',
+            approved_at TEXT DEFAULT '',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+
         CREATE TABLE IF NOT EXISTS eval_questions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             question TEXT NOT NULL,
@@ -115,7 +245,9 @@ def init_db(conn: sqlite3.Connection) -> None:
             model TEXT DEFAULT '',
             expected_source_ids TEXT NOT NULL,
             expected_fault_type TEXT NOT NULL,
-            expected_safety_keywords TEXT NOT NULL
+            expected_safety_keywords TEXT NOT NULL,
+            category TEXT DEFAULT '',
+            difficulty TEXT DEFAULT ''
         );
 
         CREATE TABLE IF NOT EXISTS eval_runs (
@@ -138,9 +270,60 @@ def init_db(conn: sqlite3.Connection) -> None:
     _ensure_column(conn, "maintenance_cases", "review_status", "TEXT DEFAULT 'unreviewed'")
     _ensure_column(conn, "maintenance_cases", "reviewer", "TEXT DEFAULT ''")
     _ensure_column(conn, "maintenance_cases", "review_notes", "TEXT DEFAULT ''")
+    _ensure_column(conn, "maintenance_cases", "work_order_status", "TEXT DEFAULT 'pending_review'")
+    _ensure_column(conn, "maintenance_cases", "approved_at", "TEXT DEFAULT ''")
+    _ensure_column(conn, "visual_assets", "mime_type", "TEXT DEFAULT ''")
+    _ensure_column(conn, "visual_assets", "equipment", "TEXT DEFAULT ''")
+    _ensure_column(conn, "visual_assets", "component", "TEXT DEFAULT ''")
+    _ensure_column(conn, "visual_assets", "defect_labels", "TEXT DEFAULT '[]'")
+    _ensure_column(conn, "visual_assets", "ocr_text", "TEXT DEFAULT ''")
+    _ensure_column(conn, "visual_assets", "flowchart_json", "TEXT DEFAULT '{}'")
+    _ensure_column(conn, "visual_assets", "provider", "TEXT DEFAULT 'local'")
+    _ensure_column(conn, "visual_assets", "model", "TEXT DEFAULT ''")
+    _ensure_column(conn, "visual_assets", "ok", "INTEGER DEFAULT 1")
+    _ensure_column(conn, "visual_assets", "manifest_id", "TEXT DEFAULT ''")
+    _ensure_column(conn, "visual_assets", "source_url", "TEXT DEFAULT ''")
+    _ensure_column(conn, "visual_assets", "source_note", "TEXT DEFAULT ''")
+    _ensure_column(conn, "visual_assets", "license_note", "TEXT DEFAULT ''")
+    _ensure_column(conn, "visual_assets", "review_status", "TEXT DEFAULT 'unreviewed'")
+    _ensure_column(conn, "visual_assets", "reviewer", "TEXT DEFAULT ''")
+    _ensure_column(conn, "visual_assets", "sha256", "TEXT DEFAULT ''")
+    _ensure_column(conn, "visual_assets", "width", "INTEGER DEFAULT 0")
+    _ensure_column(conn, "visual_assets", "height", "INTEGER DEFAULT 0")
+    _ensure_column(conn, "reconstruction_jobs", "equipment", "TEXT DEFAULT ''")
+    _ensure_column(conn, "reconstruction_jobs", "limitations", "TEXT DEFAULT ''")
+    _ensure_column(conn, "standard_3d_models", "source_url", "TEXT DEFAULT ''")
+    _ensure_column(conn, "standard_3d_models", "embed_url", "TEXT DEFAULT ''")
+    _ensure_column(conn, "standard_3d_models", "attribution", "TEXT DEFAULT ''")
+    _ensure_column(conn, "standard_3d_models", "asset_status", "TEXT DEFAULT ''")
+    _ensure_column(conn, "standard_3d_models", "viewer_mode", "TEXT DEFAULT ''")
+    _ensure_column(conn, "standard_3d_models", "processed_mesh_path", "TEXT DEFAULT ''")
+    _ensure_column(conn, "standard_3d_models", "processed_mesh_url", "TEXT DEFAULT ''")
+    _ensure_column(conn, "standard_3d_models", "source_cad_path", "TEXT DEFAULT ''")
+    _ensure_column(conn, "standard_3d_models", "sidecar_path", "TEXT DEFAULT ''")
+    _ensure_column(conn, "standard_3d_models", "conversion_report", "TEXT DEFAULT ''")
+    _ensure_column(conn, "standard_3d_models", "license_json", "TEXT DEFAULT '{}'")
+    _ensure_column(conn, "standard_3d_models", "node_bindings_json", "TEXT DEFAULT '{}'")
+    _ensure_column(conn, "standard_3d_models", "inspection_views_json", "TEXT DEFAULT '[]'")
+    _ensure_column(conn, "standard_3d_models", "explode_steps_json", "TEXT DEFAULT '[]'")
+    _ensure_column(conn, "candidate_cad_assets", "editable_spec_json", "TEXT DEFAULT '{}'")
+    _ensure_column(conn, "candidate_cad_assets", "artifact_manifest_json", "TEXT DEFAULT '{}'")
+    _ensure_column(conn, "candidate_cad_assets", "runtime_report_json", "TEXT DEFAULT '{}'")
+    _ensure_column(conn, "candidate_cad_assets", "comparison_report_json", "TEXT DEFAULT '{}'")
+    _ensure_column(conn, "candidate_cad_assets", "promotion_json", "TEXT DEFAULT '{}'")
+    conn.execute(
+        """
+        UPDATE maintenance_cases
+        SET work_order_status = 'archived'
+        WHERE status = 'approved'
+          AND (work_order_status = '' OR work_order_status = 'pending_review')
+        """
+    )
     _ensure_column(conn, "eval_questions", "review_status", "TEXT DEFAULT 'unreviewed'")
     _ensure_column(conn, "eval_questions", "reviewer", "TEXT DEFAULT ''")
     _ensure_column(conn, "eval_questions", "review_notes", "TEXT DEFAULT ''")
+    _ensure_column(conn, "eval_questions", "category", "TEXT DEFAULT ''")
+    _ensure_column(conn, "eval_questions", "difficulty", "TEXT DEFAULT ''")
     conn.commit()
 
 
@@ -200,6 +383,19 @@ def seed_if_empty(conn: sqlite3.Connection) -> None:
             """,
             EVAL_QUESTIONS,
         )
+    from .sample_expansion import generate_sample_data
+
+    generate_sample_data(conn, case_count=123, eval_count=100, rebuild_index=False)
+
+    from .a1_makg_samples import ensure_a1_makg_samples
+
+    ensure_a1_makg_samples(conn)
+    from .image_eval_assets import ensure_image_eval_visual_assets
+
+    ensure_image_eval_visual_assets(conn)
+    from .spatial_guidance import ensure_standard_3d_models
+
+    ensure_standard_3d_models(conn)
     conn.commit()
 
 
@@ -301,7 +497,7 @@ def bootstrap_demo_data(
         conn,
         case_count=exp_case_count
         if exp_case_count is not None
-        else _int_env("A1_DEMO_EXP_CASE_COUNT", 121),
+        else _int_env("A1_DEMO_EXP_CASE_COUNT", 123),
         eval_count=exp_eval_count
         if exp_eval_count is not None
         else _int_env("A1_DEMO_EXP_EVAL_COUNT", 100),

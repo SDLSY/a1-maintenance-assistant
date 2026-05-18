@@ -1,0 +1,176 @@
+{
+  "verified_at": "2026-05-14",
+  "verification_scope": "web_search_and_primary_source_check",
+  "notes": [
+    "只记录论文、官方仓库、官方文档和可追溯资料，不复制第三方项目代码。",
+    "GitHub 项目记录 HEAD commit 仅用于本轮检索定位，不代表已下载或集成其代码。",
+    "外部资料吸收的是设计思想和工程方法，正式提交仍需遵守各自许可证。"
+  ],
+  "sources": [
+    {
+      "id": "microsoft_graphrag",
+      "type": "open_source_project",
+      "title": "Microsoft GraphRAG",
+      "url": "https://github.com/microsoft/graphrag",
+      "paper_url": "https://arxiv.org/abs/2404.16130",
+      "license": "MIT",
+      "head_commit": "de531f0a697d2f35c4f85cb8511141507278404e",
+      "absorbed_idea": "知识图谱记忆结构、局部/全局图谱增强检索、从非结构化文本抽取结构化关系。",
+      "tri_mro_mapping": "证据链和图谱路径增强；不照搬重型索引。"
+    },
+    {
+      "id": "hkuds_lightrag",
+      "type": "paper_and_project",
+      "title": "LightRAG: Simple and Fast Retrieval-Augmented Generation",
+      "url": "https://github.com/HKUDS/LightRAG",
+      "paper_url": "https://arxiv.org/abs/2410.05779",
+      "license": "MIT",
+      "head_commit": "7258d4c8e1d550717565602193fa545f025ddcf2",
+      "absorbed_idea": "轻量图结构辅助检索，兼顾上下文关联和速度。",
+      "tri_mro_mapping": "SQLite 轻量图谱邻居扩展与当前任务子图。"
+    },
+    {
+      "id": "hkuds_rag_anything",
+      "type": "open_source_project",
+      "title": "RAG-Anything: All-in-One RAG Framework",
+      "url": "https://github.com/HKUDS/RAG-Anything",
+      "paper_url": "https://arxiv.org/abs/2510.12323",
+      "license": "MIT",
+      "head_commit": "146828f73de652c9d72399bfc60499966f3f8bd0",
+      "absorbed_idea": "文本、图片、表格、公式等多模态内容统一处理，并形成多模态知识图谱。",
+      "tri_mro_mapping": "统一 evidence_item 数据模型，保留模态、页码、来源和可信状态。"
+    },
+    {
+      "id": "infiniflow_ragflow",
+      "type": "open_source_project",
+      "title": "RAGFlow",
+      "url": "https://github.com/infiniflow/ragflow",
+      "license": "Apache-2.0",
+      "head_commit": "cc21dc7f007ea753e2c2063922abac6122f7c8fc",
+      "absorbed_idea": "深度文档理解、模板化 chunk、可追溯引用、多路召回和重排序。",
+      "tri_mro_mapping": "强化手册 chunk 元数据、引用覆盖和人工修正入口。"
+    },
+    {
+      "id": "colpali",
+      "type": "paper_and_project",
+      "title": "ColPali: Efficient Document Retrieval with Vision Language Models",
+      "url": "https://arxiv.org/abs/2407.01449",
+      "project_url": "https://huggingface.co/vidore/models",
+      "repo_url": "https://github.com/illuin-tech/colpali",
+      "head_commit": "2e0b927051af727238783af039dcc2c50a4d8c27",
+      "absorbed_idea": "直接检索文档页面图像，保留版式、图表和视觉线索。",
+      "tri_mro_mapping": "后续增加手册页截图证据与视觉页检索指标。"
+    },
+    {
+      "id": "openbmb_visrag",
+      "type": "paper_and_project",
+      "title": "VisRAG: Vision-based Retrieval-augmented Generation on Multi-modality Documents",
+      "url": "https://arxiv.org/abs/2410.10594",
+      "repo_url": "https://github.com/openbmb/visrag",
+      "head_commit": "f35d232d4c6c7350e12e0f72911404dbae4042ab",
+      "absorbed_idea": "视觉检索增强多模态文档问答。",
+      "tri_mro_mapping": "图片、手册图示与文本证据共同进入证据链。"
+    },
+    {
+      "id": "docling",
+      "type": "paper_and_project",
+      "title": "Docling: AI-driven Document Conversion",
+      "url": "https://github.com/docling-project/docling",
+      "paper_url": "https://research.ibm.com/publications/docling-an-efficient-open-source-toolkit-for-ai-driven-document-conversion",
+      "license": "MIT",
+      "head_commit": "5fadc6d180fbee352c83c0158925b53d5fbd1b18",
+      "absorbed_idea": "本地文档转换、版式分析、表格结构、OCR、多格式导出。",
+      "tri_mro_mapping": "作为复杂维修手册离线解析候选，降低部署端压力。"
+    },
+    {
+      "id": "llm_r",
+      "type": "paper",
+      "title": "LLM-R: Domain-Adaptive Maintenance Scheme Generation Combining Hierarchical Agents and RAG",
+      "url": "https://arxiv.org/abs/2411.04476",
+      "absorbed_idea": "层级任务 Agent 和指令级 RAG 用于维护方案生成并减少幻觉。",
+      "tri_mro_mapping": "将现有感知、检索、诊断、SOP、安全、知识更新包装为层级作业链。"
+    },
+    {
+      "id": "param",
+      "type": "paper",
+      "title": "Prescriptive Agents based on RAG for Automated Maintenance",
+      "url": "https://arxiv.org/abs/2508.04714",
+      "absorbed_idea": "从异常检测走向处方维护，输出检查清单、措施、备件和时间线。",
+      "tri_mro_mapping": "强化 SOP 作业票字段，不做高风险振动训练扩展。"
+    },
+    {
+      "id": "maintenance_kg_mdpi",
+      "type": "paper",
+      "title": "Knowledge Graph Construction Based on a Joint Model for Equipment Maintenance",
+      "url": "https://www.mdpi.com/2227-7390/11/17/3748",
+      "absorbed_idea": "从维修手册抽取实体关系并构建设备维护知识图谱。",
+      "tri_mro_mapping": "半自动抽取 + 人工审核，避免无数据训练。"
+    },
+    {
+      "id": "industrial_maintenance_kg_review",
+      "type": "paper",
+      "title": "Knowledge graphs for operational decision-making in industrial maintenance: A systematic review",
+      "url": "https://www.repository.cam.ac.uk/handle/1810/395150",
+      "doi": "https://doi.org/10.1016/j.eswa.2025.130172",
+      "absorbed_idea": "维护知识图谱用于故障诊断、维护动作识别和算法增强。",
+      "tri_mro_mapping": "图谱用于约束检索、SOP 和知识更新，不只做可视化。"
+    },
+    {
+      "id": "irobotics_multimodal_maintenance_rag",
+      "type": "paper",
+      "title": "A Multimodal RAG-based Maintenance Chatbot for Robotic Arm Manuals",
+      "url": "https://iroboticsjournal.org/index.php/irobotics/article/view/192",
+      "license": "CC BY 4.0",
+      "absorbed_idea": "文本和视觉两条维护手册处理管线，Caption RAG + VLM RAG。",
+      "tri_mro_mapping": "图片 caption 缓存、原图页码绑定、VLM/OCR 作为候选证据。"
+    },
+    {
+      "id": "cmdbuild_openmaint",
+      "type": "open_source_cmms_reference",
+      "title": "CMDBuild / openMAINT",
+      "url": "https://www.cmdbuild.org/en/products/cmdbuild",
+      "brochure_url": "https://www.openmaint.org/en/resources/brochure",
+      "absorbed_idea": "资产、关系、工作流、历史版本、文档归档、仪表盘和维护活动管理。",
+      "tri_mro_mapping": "把案例上传升级为检修作业票/工单生命周期。"
+    },
+    {
+      "id": "hse_permit_to_work",
+      "type": "official_safety_guidance",
+      "title": "HSE Permit to Work Systems",
+      "url": "https://www.hse.gov.uk/humanfactors/topics/ptw.htm",
+      "hsg250_url": "https://www.hse.gov.uk/pubns/books/hsg250.htm",
+      "license": "Open Government Licence v3.0 unless otherwise stated",
+      "absorbed_idea": "高风险工作需要明确工作内容、责任人、风险、控制措施、授权与交接。",
+      "tri_mro_mapping": "安全闸门和作业票状态机。"
+    },
+    {
+      "id": "osha_loto",
+      "type": "official_safety_standard",
+      "title": "OSHA 29 CFR 1910.147 Lockout/Tagout",
+      "url": "https://www.osha.gov/laws-regs/regulations/standardnumber/1910/1910.147",
+      "overview_url": "https://www.osha.gov/control-hazardous-energy/",
+      "absorbed_idea": "控制维护时意外启动和危险能量释放，包含隔离、挂牌、验证、培训等。",
+      "tri_mro_mapping": "断电挂牌、泄压、残余能量释放、验证隔离、PPE 等安全规则。"
+    },
+    {
+      "id": "freecad",
+      "type": "open_source_project",
+      "title": "FreeCAD",
+      "url": "https://github.com/FreeCAD/FreeCAD",
+      "license": "LGPL-2.1",
+      "head_commit": "72ebcbbd91e7130be2572f16bd2cf35143c42174",
+      "absorbed_idea": "开源参数化 CAD、对象树、STEP/FCStd 处理、Python API。",
+      "tri_mro_mapping": "标准 CAD 资产、对象级命名、GLB 转换和授权追溯。"
+    },
+    {
+      "id": "occt",
+      "type": "open_source_project",
+      "title": "Open CASCADE Technology",
+      "url": "https://github.com/Open-Cascade-SAS/OCCT",
+      "license": "LGPL-2.1 with exception / commercial option",
+      "head_commit": "d3056ef80c9668f395da40f5fd7be186cae4501f",
+      "absorbed_idea": "3D surface/solid modeling、CAD data exchange、visualization，支持 STEP、IGES、glTF、OBJ、STL 等。",
+      "tri_mro_mapping": "后续可做真正 CAD 查看/转换服务；短期维持 GLB 展示 + CAD 原件证据。"
+    }
+  ]
+}

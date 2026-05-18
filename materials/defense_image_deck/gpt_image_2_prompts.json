@@ -11,11 +11,11 @@
       "layout": "左侧 55% 放大标题和副标题；右侧 45% 是工业检修台场景，包含电机、泵、轴承、手册和检修工单；底部放赛题和关键词。",
       "visual": "深蓝背景，右侧工业设备照片级质感但不过暗；标题区留足呼吸感；青绿色细线做技术感，不使用发光球、赛博网格或夸张机器人。",
       "text": [
-        "设备检修知识检索与作业辅助系统",
+        "A1-MAKG：面向设备检修的多模态证据链作业辅助系统",
         "多模态大模型 · 手册证据 · SOP 合规 · 知识沉淀",
         "中国软件杯 A1 赛题"
       ],
-      "prompt": "16:9 full-slide Chinese defense presentation page, mature industrial engineering style, quiet premium consulting layout, no neon cyberpunk, no generic AI poster look, deep navy and steel gray base, restrained teal accent, small amount of amber/red for risk, large legible Chinese text only, strong hierarchy, clean grid, realistic maintenance context, all content, text, diagrams and layout are rendered inside this single image. Create slide 1 cover. Main title exactly: 设备检修知识检索与作业辅助系统. Subtitle exactly: 多模态大模型 · 手册证据 · SOP 合规 · 知识沉淀. Footer text exactly: 中国软件杯 A1 赛题. Composition: left side has large title and subtitle, right side shows a realistic industrial maintenance workbench with an electric motor, centrifugal pump, bearing parts, service manual pages and a work order. Style: sober national competition defense deck, premium industrial consulting, no logos, no watermark, no extra text, no random English, no garbled characters."
+      "prompt": "16:9 full-slide Chinese defense presentation page, mature industrial engineering style, quiet premium consulting layout, no neon cyberpunk, no generic AI poster look, deep navy and steel gray base, restrained teal accent, small amount of amber/red for risk, large legible Chinese text only, strong hierarchy, clean grid, realistic maintenance context, all content, text, diagrams and layout are rendered inside this single image. Create slide 1 cover. Main title exactly: A1-MAKG：面向设备检修的多模态证据链作业辅助系统. Subtitle exactly: 多模态大模型 · 手册证据 · SOP 合规 · 知识沉淀. Footer text exactly: 中国软件杯 A1 赛题. Composition: left side has large title and subtitle, right side shows a realistic industrial maintenance workbench with an electric motor, centrifugal pump, bearing parts, service manual pages and a work order. Style: sober national competition defense deck, premium industrial consulting, no logos, no watermark, no extra text, no random English, no garbled characters."
     },
     {
       "slide": 2,

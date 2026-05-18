@@ -33,6 +33,9 @@ def build_sop(
         steps.insert(3, "检查接地和绝缘状态，禁止绝缘不合格时强行启动。")
     if equipment == "bearing":
         steps.insert(3, "轴承拆装区域保持清洁，禁止直接硬敲滚道和保持架。")
+    if equipment == "engine":
+        steps.insert(3, "发动机作业前确认冷机状态，断开点火/喷油相关连接，防止误启动和烫伤。")
+        steps.append("按手册复核火花塞间隙、压缩压力、泵系泄漏和规定扭矩，异常数据必须人工复核。")
 
     possible_causes = []
     for hit in manual_hits + case_hits:
@@ -73,6 +76,8 @@ def infer_tools_parts(equipment: str, primary_fault: str, case_hits: list[Retrie
         return ["轴承", "润滑脂", "绝缘电阻表", "测振仪", "拉马"]
     if equipment == "bearing":
         return ["同规格轴承", "卡簧钳", "清洗剂", "塞尺", "润滑脂"]
+    if equipment == "engine":
+        return ["火花塞专用套筒", "塞尺", "压力表", "定扭扳手", "尖嘴钳"]
     return ["常用拆装工具", "测温仪", "测振仪", "备件清单"]
 
 
@@ -119,6 +124,7 @@ def agent_trace(
     sop: dict | None = None,
     equipment: str = "",
     image_caption: str = "",
+    visual_analysis: dict | None = None,
 ) -> list[dict]:
     """Return a UI-ready trace for the multi-agent workflow."""
 
@@ -132,6 +138,12 @@ def agent_trace(
     risk = (sop or {}).get("risk_level", "unknown")
     review_required = bool((sop or {}).get("human_review_required", True))
     retrieval_confidence = _average_confidence(all_hits)
+    structured_visual = bool(visual_analysis)
+    visual_labels = [
+        item.get("label", "")
+        for item in (visual_analysis or {}).get("defect_labels", [])
+        if item.get("label")
+    ]
 
     return [
         {
@@ -139,9 +151,19 @@ def agent_trace(
             "agent": "视觉 Agent",
             "status": "done" if has_image else "skipped",
             "input": "故障图片" if has_image else "未上传图片",
-            "output": image_caption if has_image else "本次仅使用文本、设备型号和知识库检索。",
+            "output": (
+                f"{(visual_analysis or {}).get('caption', image_caption)}；缺陷标签：{'、'.join(visual_labels)}"
+                if structured_visual
+                else image_caption if has_image else "本次仅使用文本、设备型号和知识库检索。"
+            ),
             "message": "已生成图片结构化描述并参与检索" if has_image else "本次未上传故障图片",
-            "evidence": {"has_image": has_image, "caption_length": len(image_caption or "")},
+            "evidence": {
+                "has_image": has_image,
+                "has_structured_visual_asset": structured_visual,
+                "caption_length": len(image_caption or ""),
+                "defect_labels": visual_labels,
+                "ocr_text": (visual_analysis or {}).get("ocr_text", ""),
+            },
             "confidence": 0.86 if has_image else 0.0,
             "duration_ms": 180 if has_image else 0,
             "next_action": "将视觉标签并入检索查询" if has_image else "可上传故障图片增强跨模态匹配",

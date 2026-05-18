@@ -42,8 +42,8 @@ deployment_mode: `public`
   },
   "review": {
     "ready_for_goal": true,
-    "cases_approved": 125,
-    "eval_approved": 104,
+    "cases_approved": 156,
+    "eval_approved": 134,
     "missing": []
   },
   "loongarch": {
@@ -53,11 +53,11 @@ deployment_mode: `public`
       "python_modules": "pass",
       "database": "pass",
       "model_routes": "pass",
-      "api": "blocked"
+      "api": "pass"
     }
   },
   "submission": {
-    "submission_entries": 169,
+    "submission_entries": 193,
     "submission_forbidden_entries": 0
   }
 }

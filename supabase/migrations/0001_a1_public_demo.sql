@@ -14,6 +14,8 @@ create table if not exists public.a1_maintenance_cases (
   parts text default '',
   risk_level text default 'medium',
   status text not null default 'pending',
+  work_order_status text default 'pending_review',
+  approved_at timestamptz,
   created_at timestamptz not null,
   review_status text default 'unreviewed',
   reviewer text default '',
@@ -34,6 +36,10 @@ create table if not exists public.a1_feedback (
 
 alter table public.a1_maintenance_cases enable row level security;
 alter table public.a1_feedback enable row level security;
+
+-- Safe to rerun on an older project created before the work-order upgrade.
+alter table public.a1_maintenance_cases add column if not exists work_order_status text default 'pending_review';
+alter table public.a1_maintenance_cases add column if not exists approved_at timestamptz;
 
 -- The backend should use SUPABASE_SECRET_KEY or SUPABASE_SERVICE_ROLE_KEY.
 -- Do not expose backend-only keys in Cloudflare Pages or browser code.

@@ -1,0 +1,673 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Tri-MRO - 基于三链对齐的可信设备检修作业控制平台</title>
+  <meta name="description" content="Tri-MRO 将现场感知、证据检索、CAD 部件定位、SOP 作业票、安全闸门和知识沉淀统一到一次可信检修任务中。"/>
+  <link rel="stylesheet" href="/static/marketing.css?v=storyboard-rebuild-20260516-v1"/>
+</head>
+<body class="marketing-homepage">
+<!-- legacy-test-token: 绯荤粺娌℃湁鎬ョ潃鍥炵瓟 鍩轰簬涓夐摼瀵归綈鐨勫彲淇¤澶囨淇綔涓氭帶鍒跺钩鍙? -->
+
+<header class="site-header" data-elevate>
+  <a class="brand" href="#hero" aria-label="Tri-MRO 首页">
+    <span class="brand-mark">T</span>
+    <span>
+      <strong>Tri-MRO</strong>
+      <small>可信设备检修作业控制平台</small>
+    </span>
+  </a>
+  <nav class="site-nav" aria-label="页面导航">
+    <a href="#capability">产品能力</a>
+    <a href="#alignment">三链对齐</a>
+    <a href="#claim-card">检修判断卡</a>
+    <a href="#structure">结构链</a>
+    <a href="#safety">安全闸门</a>
+    <a href="#knowledge">知识闭环</a>
+    <a href="#metrics">评测证明</a>
+  </nav>
+  <a class="header-cta" href="/" target="_blank" rel="noreferrer">进入工作台 <span aria-hidden="true">→</span></a>
+</header>
+
+<main>
+  <section id="hero" class="hero-section scene scene-hero">
+    <div class="hero-copy">
+      <h1>让大模型检修建议<br/><span>有证据、能定位、可阻断</span></h1>
+      <p>Tri-MRO 将现场感知、证据检索、CAD 部件定位、SOP 作业票、安全闸门和知识沉淀统一到一次可信检修任务中。</p>
+      <p class="hero-principle">系统没有急着回答“怎么修”，而是先判断“现在能不能修”。</p>
+      <div class="hero-actions">
+        <a class="primary-action" href="/" target="_blank" rel="noreferrer">查看演示链路</a>
+        <a class="secondary-action" href="#alignment">了解三链对齐</a>
+      </div>
+      <div class="hero-proof-grid" aria-label="核心价值">
+        <span><b>安全优先</b><small>高风险先阻断</small></span>
+        <span><b>证据可追溯</b><small>来源可查可复核</small></span>
+        <span><b>定位更精准</b><small>CAD 结构级定位</small></span>
+      </div>
+    </div>
+
+    <div class="incident-console">
+      <div class="blocked-card">
+        <div class="blocked-head">
+          <span class="shield-icon">!</span>
+          <span>安全闸门</span>
+        </div>
+        <strong>已阻断</strong>
+        <h2>禁止进入拆卸步骤</h2>
+        <div class="missing-list">
+          <div><span class="lock-symbol"></span><b>未确认断电挂牌</b><em>未确认</em></div>
+          <div><span class="gauge-symbol"></span><b>未确认泄压</b><em>未确认</em></div>
+          <div><span class="helmet-symbol"></span><b>未确认 PPE</b><em>未确认</em></div>
+        </div>
+        <p>在安全条件未满足前，系统禁止进入高风险拆卸步骤。</p>
+      </div>
+
+      <div class="product-frame">
+        <div class="task-strip">
+          <span>任务 ID：TMRO-2026-0515-002</span>
+          <span>设备：离心泵</span>
+          <span>型号：ISG80-160</span>
+          <span>证据分 <b>0.78</b></span>
+          <span class="status-red">已阻断</span>
+        </div>
+        <div class="frame-tabs">
+          <span class="active">结构工位</span>
+          <span>部件定位</span>
+          <span>SOP 作业票</span>
+          <span>证据链</span>
+          <span>知识沉淀</span>
+        </div>
+        <div class="frame-body">
+          <div class="cad-preview">
+            <img src="/static/assets/marketing/tri-mro-cad-pump-image2.png" alt="离心泵 CAD 部件定位预览"/>
+            <div class="cad-hotspot"></div>
+            <div class="cad-label"><b>机械密封</b><small>部件标识<br/>机械密封区</small></div>
+          </div>
+          <aside class="claim-mini">
+            <h3>检修判断卡</h3>
+            <div class="mini-gauge">0.78<small>证据<br/>预算</small></div>
+            <label>手册证据 <span>86%</span><i style="--w:86%"></i></label>
+            <label>案例证据 <span>72%</span><i style="--w:72%"></i></label>
+            <label>图谱证据 <span>80%</span><i style="--w:80%"></i></label>
+            <label>视觉证据 <span>65%</span><i style="--w:65%"></i></label>
+            <p>当前定位<br/><b>机械密封区域</b></p>
+          </aside>
+        </div>
+      </div>
+    </div>
+
+    <div class="workflow-ribbon" aria-label="一次可信检修任务的标准流程">
+      <span class="ribbon-title">一次可信检修任务的标准流程</span>
+      <span>现场输入</span>
+      <i></i>
+      <span>文字与图像识别</span>
+      <i></i>
+      <span>判断卡</span>
+      <i></i>
+      <span>CAD 定位</span>
+      <i></i>
+      <span>SOP</span>
+      <i></i>
+      <span class="ribbon-danger">安全闸门</span>
+      <i></i>
+      <span>案例审核</span>
+      <i></i>
+      <span>图谱/索引更新</span>
+    </div>
+  </section>
+
+  <section id="capability" class="value-row scene">
+    <article>
+      <strong>证据驱动的判断</strong>
+      <span>多源证据可追溯</span>
+    </article>
+    <article>
+      <strong>三链对齐</strong>
+      <span>证据链 × 结构链 × 作业链</span>
+    </article>
+    <article>
+      <strong>安全第一</strong>
+      <span>风险先阻断</span>
+    </article>
+    <article>
+      <strong>可执行 SOP</strong>
+      <span>步骤化作业票</span>
+    </article>
+    <article>
+      <strong>知识闭环</strong>
+      <span>审核入库，持续进化</span>
+    </article>
+  </section>
+
+  <section id="alignment" class="scene alignment-section">
+    <div class="section-heading centered">
+      <h2>不是问答机器人，而是<span>三链对齐</span>的检修作业控制系统</h2>
+      <p>每个故障判断都必须同时回答：为什么这么判断、具体修哪里、按什么流程安全执行。</p>
+      <div class="formula">检修判断卡 = 证据链 + 结构链 + 作业链 + 安全闸门</div>
+    </div>
+    <div class="alignment-board">
+      <div class="alignment-stack evidence-stack">
+      <div class="chain-column evidence-chain">
+        <h3>证据链</h3>
+        <small>为什么这么判断</small>
+        <div class="source-card">
+          <b>手册引用</b>
+          <span>《离心泵维修手册》第 5 章 机械密封</span>
+          <em>证据强度：高</em>
+        </div>
+        <div class="source-card">
+          <b>相似案例</b>
+          <span>case_2025_0412_156 · 相似度 0.86</span>
+          <em>已审核通过</em>
+        </div>
+        <div class="source-card graph-path">
+          <b>图谱路径</b>
+          <span>离心泵 → 密封 → 泄漏 → SOP</span>
+          <em>路径置信度：中</em>
+        </div>
+        <div class="source-card visual-card">
+          <b>视觉证据</b>
+          <img src="/static/assets/marketing/tri-mro-evidence-chain-image2.png" alt="维修证据链配图"/>
+          <span>泄漏 / 油污 / 密封端污染</span>
+          <em>视觉置信度：0.72</em>
+        </div>
+      </div>
+      </div>
+
+      <div class="alignment-stack claim-stack">
+      <div class="claim-card-large">
+        <div class="card-title">检修判断卡</div>
+        <div class="claim-meta">
+          <span>判断卡编号：泵-002</span>
+          <span class="review-chip">需人工复核</span>
+          <span>置信等级：中高</span>
+        </div>
+        <h3>机械密封泄漏可能与密封端面磨损或安装偏差有关</h3>
+        <div class="budget-row">
+          <div class="budget-dial">0.78<small>综合证据分</small></div>
+          <div class="budget-bars">
+            <label>手册证据 <span>86%</span><i style="--w:86%"></i></label>
+            <label>案例证据 <span>72%</span><i style="--w:72%"></i></label>
+            <label>图谱证据 <span>80%</span><i style="--w:80%"></i></label>
+            <label>视觉证据 <span>65%</span><i style="--w:65%"></i></label>
+          </div>
+        </div>
+        <div class="tri-grid">
+          <div><b>证据链</b><span>手册 3 / 案例 2 / 图谱 1 / 视觉 4</span></div>
+          <div><b>结构链</b><span>机械密封 · 语义热点/锚点级</span></div>
+          <div><b>作业链</b><span>标准作业 8 步 / 高风险 3 步 / 已阻断</span></div>
+        </div>
+        <div class="fmea-strip">
+          <b>FMEA 风险链</b>
+          <span>故障模式：密封泄漏</span>
+          <span>影响：介质泄漏、效率下降、轴承污染</span>
+          <span>风险优先数：24</span>
+        </div>
+      </div>
+
+      <div class="operation-row">
+        <h3>作业链</h3>
+        <div class="sop-mini">
+          <span>1 作业前安全确认</span>
+          <span>2 清理泄漏区域</span>
+          <span class="blocked-step">3 拆卸密封端盖</span>
+          <span>4 检查密封端面</span>
+          <span>5 更换密封件</span>
+          <span>6 试运行观察</span>
+        </div>
+        <div class="blocked-mini">
+          <b>安全闸门</b>
+          <strong>已阻断</strong>
+          <small>未确认断电 / 未确认泄压 / 未确认 PPE</small>
+        </div>
+      </div>
+      </div>
+
+      <div class="alignment-stack structure-stack">
+      <div class="chain-column structure-chain">
+        <h3>结构链</h3>
+        <small>具体修哪里</small>
+        <div class="target-card">
+          <b>目标定位</b>
+          <code>机械密封区域</code>
+          <span>别名：机械密封 / 密封端 / 轴封</span>
+        </div>
+        <div class="cad-card">
+          <img src="/static/assets/marketing/tri-mro-cad-pump-image2.png" alt="机械密封定位"/>
+          <span>结构模型定位</span>
+        </div>
+        <div class="binding-card">
+          <b>绑定等级</b>
+          <div class="level-track">
+            <i></i><i></i><i class="active"></i><i></i>
+          </div>
+          <span>语义热点 / 锚点级 · 需人工校准</span>
+        </div>
+      </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="claim-card" class="scene claim-section">
+    <div class="section-heading centered">
+      <h2>每个判断都生成可审计的 <span>检修判断卡</span></h2>
+      <p>证据预算决定输出策略：证据不足时，系统不会强行给确定结论，而是降级、拒答或转人工复核。</p>
+    </div>
+    <div class="claim-layout">
+      <article class="claim-main-card">
+        <div class="card-title">检修判断卡</div>
+        <div class="claim-id-row">
+          <span>判断卡编号：泵-20250519-0001</span>
+          <span>置信等级 <b>中高</b></span>
+          <span class="review-chip">需人工复核</span>
+        </div>
+        <div class="claim-content-grid">
+          <div>
+            <small>故障判断结论</small>
+            <h3>机械密封泄漏可能与密封端面磨损或安装偏差有关</h3>
+            <dl>
+              <dt>故障设备</dt><dd>离心泵 P-101A</dd>
+              <dt>故障现象</dt><dd>密封腔持续滴漏，滴漏明显</dd>
+              <dt>报告人员</dt><dd>张工（现场）</dd>
+            </dl>
+          </div>
+          <div class="key-summary">
+            <small>关键信息摘要</small>
+            <ul>
+              <li>现场图片显示泵轴附近有明显湿滑痕迹</li>
+              <li>历史案例中 72% 相似故障由密封端面磨损引起</li>
+              <li>结构上该部件为机械密封，需执行拆前闸门</li>
+              <li>暂无铭牌与工况完整信息，部分证据缺失</li>
+            </ul>
+          </div>
+          <div class="binding-info">
+            <small>绑定信息</small>
+            <dl>
+              <dt>部件标识：</dt><dd>机械密封区域</dd>
+              <dt>部件别名</dt><dd>机械密封 / 密封端 / 轴封</dd>
+              <dt>绑定等级</dt><dd>语义热点 / 锚点级</dd>
+              <dt>来源模型</dt><dd>gpt-5.5 + codex + 本地规则引擎</dd>
+            </dl>
+          </div>
+          <div class="risk-box">
+            <small>FMEA 风险提示</small>
+            <b>高风险</b>
+            <p>密封失效可能导致介质泄漏，存在滑倒、腐蚀及环境污染风险。建议在充分确认安全措施后再进入拆卸步骤。</p>
+          </div>
+        </div>
+        <div class="claim-actions">
+          <a href="#alignment">查看完整证据链</a>
+          <a href="#structure">查看绑定的 CAD 部件</a>
+          <a href="#safety">查看作业票（SOP）</a>
+          <a href="#safety">安全闸门状态</a>
+        </div>
+      </article>
+      <aside class="evidence-policy">
+        <div class="section-image-card claim-image">
+          <img src="/static/assets/marketing/tri-mro-evidence-chain-image2.png" alt="检修判断卡证据治理配图"/>
+          <span>手册、案例、图谱与视觉证据共同支撑检修判断</span>
+        </div>
+        <div class="policy-card good">
+          <b>证据充分（示例）</b>
+          <p>系统行为：输出明确判断 + SOP</p>
+          <ul>
+            <li>故障判断：密封端面磨损导致泄漏</li>
+            <li>原因说明：端面磨损导致密封比压下降</li>
+            <li>作业票：生成完整 SOP 步骤（共 8 步）</li>
+            <li>安全闸门：满足所有进入条件</li>
+          </ul>
+          <a href="#safety">进入作业执行流程</a>
+        </div>
+        <div class="policy-card weak">
+          <b>证据不足（示例）</b>
+          <p>系统行为：降级 + 请求补充信息</p>
+          <ul>
+            <li>铭牌信息：请提供设备铭牌照片</li>
+            <li>清晰图片：请提供密封端部位近照</li>
+            <li>工况信息：介质、温度、压力、运行时间</li>
+            <li>历史记录：是否有拆检或更换记录</li>
+          </ul>
+          <button type="button">补充信息后重新评估</button>
+        </div>
+      </aside>
+      <div class="evidence-preview">
+        <article><b>手册引用</b><span>3</span><small>《离心泵维护手册》第 5 章 机械密封</small></article>
+        <article><b>相似案例</b><span>4</span><small>CASE-20240412-156 · 相似度 0.86</small></article>
+        <article><b>图谱路径</b><span>2</span><small>离心泵 → 密封 → 泄漏 → SOP</small></article>
+        <article><b>视觉证据</b><span>5</span><small>泄漏点照片 / 拆检图 / 密封件磨损图</small></article>
+      </div>
+    </div>
+  </section>
+
+  <section id="structure" class="scene structure-section">
+    <div class="structure-header">
+      <div>
+        <h2>故障必须落到真实部件，而不是停留在文字建议</h2>
+        <p>部件约束将图片线索、检索证据、图谱节点、作业步骤和 CAD 锚点统一到同一个部件键。</p>
+      </div>
+      <div class="mini-brand"><span class="brand-mark small">T</span><b>Tri-MRO</b><small>证据可信 · 结构可信 · 安全可信</small></div>
+    </div>
+    <div class="structure-workbench">
+      <aside class="candidate-panel">
+        <h3>候选部件（来自文字、图像识别与检索）</h3>
+        <article class="candidate active">
+          <strong>1 <span>机械密封</span><em>0.82</em></strong>
+          <p>机械密封 / 密封端</p>
+          <div><small>泄漏</small><small>油污</small><small>密封端污染</small></div>
+          <footer>手册 12 · 案例 28 · 图谱 7 · 图片 16</footer>
+        </article>
+        <article class="candidate">
+          <strong>2 <span>泵轴承</span><em>0.61</em></strong>
+          <p>轴承</p>
+          <div><small>噪音</small><small>温升</small></div>
+          <footer>手册 8 · 案例 15 · 图谱 5 · 图片 9</footer>
+        </article>
+        <article class="candidate">
+          <strong>3 <span>泵轴</span><em>0.45</em></strong>
+          <p>泵轴</p>
+          <div><small>振动</small><small>磨损痕迹</small></div>
+          <footer>手册 6 · 案例 9 · 图谱 4 · 图片 6</footer>
+        </article>
+      </aside>
+      <div class="cad-workbench">
+        <div class="cad-toolbar">
+          <button>聚焦部件</button>
+          <button>剖视平面</button>
+          <button>重置视角</button>
+          <button class="toggle-on">显示热点</button>
+          <button>模型信息</button>
+        </div>
+        <div class="cad-stage-clean">
+          <img src="/static/assets/marketing/tri-mro-cad-pump-image2.png" alt="离心泵机械密封 CAD 定位"/>
+          <span class="stage-hotspot"></span>
+          <span class="stage-callout">机械密封<br/><small>密封端</small></span>
+        </div>
+        <div class="view-strip">
+          <span class="active">整机视图</span>
+          <span>泵体（剖视）</span>
+          <span>密封端特写</span>
+          <span>轴向剖视</span>
+          <span>爆炸视图</span>
+        </div>
+      </div>
+      <aside class="contract-panel">
+        <h3>部件约束</h3>
+        <dl>
+          <dt>中文名</dt><dd>机械密封</dd>
+          <dt>部件标识</dt><dd><code>机械密封区域</code></dd>
+          <dt>别名</dt><dd>机械密封 / 密封端 / 轴封</dd>
+          <dt>常见故障</dt><dd>泄漏 / 磨损 / 老化 / 安装偏差</dd>
+          <dt>必要安全闸门</dt><dd><span class="tag danger">断电</span><span class="tag danger">泄压</span><span class="tag danger">温度安全</span><span class="tag danger">PPE</span></dd>
+          <dt>CAD 绑定等级</dt><dd>语义热点 / 锚点级</dd>
+          <dt>可信边界</dt><dd class="warning-text">不用于尺寸测量和安全放行</dd>
+        </dl>
+        <div class="contract-stats">
+          <span><b>12</b>手册引用</span>
+          <span><b>28</b>相似案例</span>
+          <span><b>7</b>图谱路径</span>
+          <span><b>16</b>视觉证据</span>
+        </div>
+        <a class="primary-action wide" href="/">进入 CAD 工位</a>
+      </aside>
+      <div class="sop-bound-row">
+        <b>SOP 作业步骤（与部件标识绑定）</b>
+        <div>
+          <span>1 作业前安全确认</span>
+          <span>2 清理泄漏区域</span>
+          <span class="current">3 拆卸机械密封端盖</span>
+          <span>4 检查密封端面</span>
+          <span>5 更换 O 形圈 / 垫片</span>
+          <span>6 试运行观察</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="safety" class="scene safety-section">
+    <div class="safety-topline">
+      <h2>高风险步骤不是提醒，而是<span>可阻断</span>的作业控制</h2>
+      <p>未完成断电、泄压、PPE 与残余能量确认时，系统禁止进入拆卸步骤。</p>
+    </div>
+    <div class="safety-grid">
+      <article class="work-order-card">
+        <h3>离心泵机械密封泄漏检修作业票</h3>
+        <div class="work-order-meta">
+          <span>工单号：WO-2025-0519-0034</span>
+          <span>设备：离心泵 P-150A</span>
+          <span>SOP 版本：v2.1</span>
+        </div>
+        <div class="sop-table">
+          <div class="sop-head"><span>步骤</span><span>作业步骤</span><span>风险等级</span><span>绑定部件</span><span>证据链接</span></div>
+          <div><span>1</span><b>作业前安全确认</b><em class="risk high">高风险</em><code>机械密封</code><small>3 条证据</small></div>
+          <div><span>2</span><b>清理泄漏区域</b><em class="risk medium">中风险</em><code>泵体外壳</code><small>2 条证据</small></div>
+          <div class="row-blocked"><span>3</span><b>拆卸机械密封端盖</b><em class="risk high">高风险</em><code>机械密封</code><small>5 条证据</small></div>
+          <div><span>4</span><b>检查密封端面</b><em class="risk medium">中风险</em><code>密封端面</code><small>4 条证据</small></div>
+          <div><span>5</span><b>更换密封件</b><em class="risk high">高风险</em><code>机械密封</code><small>6 条证据</small></div>
+          <div><span>6</span><b>回装与紧固</b><em class="risk medium">中风险</em><code>机械密封</code><small>3 条证据</small></div>
+          <div><span>7</span><b>试运行观察</b><em class="risk low">低风险</em><code>整机系统</code><small>2 条证据</small></div>
+          <div><span>8</span><b>验收归档</b><em class="risk low">低风险</em><code>验收归档</code><small>1 条证据</small></div>
+        </div>
+      </article>
+
+      <article class="gate-panel blocked-card">
+        <div class="blocked-head">
+          <span class="shield-icon">!</span>
+          <span>安全闸门状态机</span>
+          <small>状态更新时间：2025-05-19 10:35:22</small>
+        </div>
+        <div class="gate-media">
+          <img src="/static/assets/marketing/tri-mro-safety-gate-image2.png" alt="工业检修安全闸门配图"/>
+        </div>
+        <div class="gate-decision">
+          <div>
+            <small>当前状态</small>
+            <strong>已阻断</strong>
+            <small>决策</small>
+            <h3>禁止进入拆卸步骤</h3>
+            <p>存在未完成的安全条件，无法进入高风险拆卸步骤。</p>
+          </div>
+          <div class="gate-checks">
+            <div class="fail"><b>断电挂牌</b><span>未确认</span></div>
+            <div class="fail"><b>泄压确认</b><span>未确认</span></div>
+            <div class="pass"><b>温度安全</b><span>已确认</span></div>
+            <div class="fail"><b>PPE 确认</b><span>未确认</span></div>
+            <div class="pass"><b>工具确认</b><span>已确认</span></div>
+          </div>
+        </div>
+        <div class="gate-actions">
+          <button>确认断电</button>
+          <button>确认泄压</button>
+          <button>确认 PPE</button>
+          <button class="review">转人工复核</button>
+        </div>
+      </article>
+
+      <div class="safety-bottom">
+        <article>
+          <h4>工具与物料</h4>
+          <ul>
+            <li>扭矩扳手 20-200 N·m</li>
+            <li>开口扳手套装 8-32 mm</li>
+            <li>密封圈与清洁布</li>
+            <li>护目镜与防护手套</li>
+          </ul>
+        </article>
+        <article>
+          <h4>验收标准</h4>
+          <ul>
+            <li>运行 30 分钟内无可见泄漏</li>
+            <li>温升正常，振动不超限</li>
+            <li>所有紧固件符合规范</li>
+          </ul>
+        </article>
+        <article class="audit-card">
+          <h4>审计日志（不可篡改）</h4>
+          <p><b>10:20:11</b> 创建作业票 · 等待安全确认</p>
+          <p><b>10:21:05</b> 提交安全条件评估 · 已阻断</p>
+          <p><b>10:25:33</b> 确认温度安全 · 已阻断</p>
+          <p><b>10:35:22</b> 转人工复核 · 已阻断</p>
+        </article>
+        <article class="state-machine">
+          <h4>状态机流转图</h4>
+          <div><span>等待中</span><i></i><span class="blocked">已阻断</span><i></i><span>可放行</span><i></i><span>执行中</span></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="knowledge" class="scene knowledge-section">
+    <div class="section-heading">
+      <h2>经验不是直接入库，而是经过审核的<span>知识写入流水线</span></h2>
+      <p>检修任务完成后，系统生成案例草稿；审核通过后才写入案例库、知识图谱和检索索引。</p>
+    </div>
+    <div class="knowledge-grid">
+      <article class="case-draft">
+        <h3>1 案例草稿（由当前任务自动生成）</h3>
+        <dl>
+          <dt>案例标题</dt><dd>离心泵机械密封泄漏的诊断与检修</dd>
+          <dt>设备类型</dt><dd>离心泵</dd>
+          <dt>设备型号</dt><dd>ISG80-160</dd>
+          <dt>部件标识</dt><dd><code>机械密封区域</code></dd>
+          <dt>故障现象</dt><dd>机械密封持续滴漏，泄漏量逐步增大</dd>
+          <dt>根本原因</dt><dd>密封端面磨损或安装偏差导致密封面受损</dd>
+          <dt>处理措施</dt><dd>更换机械密封，校验安装与轴向窜动</dd>
+        </dl>
+        <div class="draft-summary">
+          <span>证据链 3 类</span>
+          <span>SOP 8 步</span>
+          <span>安全闸门已通过 3/3</span>
+          <span>FMEA 风险优先数=24</span>
+        </div>
+      </article>
+      <article class="review-board">
+        <h3>2 审核看板</h3>
+        <div class="review-columns">
+          <div>
+            <b>待审核（2）</b>
+            <div class="review-ticket pending">
+              <strong>CASE-DRAFT-2025-0519-001</strong>
+              <p>离心泵机械密封泄漏检修案例</p>
+              <span>证据得分 0.78 · 完整度 88%</span>
+            </div>
+            <div class="review-ticket pending">
+              <strong>CASE-DRAFT-2025-0519-002</strong>
+              <p>泵振动异常排查与处理</p>
+              <span>证据得分 0.62 · 完整度 72%</span>
+            </div>
+          </div>
+          <div>
+            <b>已通过（3）</b>
+            <div class="review-ticket approved">
+              <strong>CASE-2025-0517-045</strong>
+              <p>机械密封更换标准案例</p>
+              <span>审核人：R_A001 · 质量评分 0.91</span>
+            </div>
+            <div class="review-ticket approved">
+              <strong>CASE-2025-0516-038</strong>
+              <p>泵轴承过热诊断案例</p>
+              <span>审核人：R_B007 · 质量评分 0.86</span>
+            </div>
+          </div>
+          <div>
+            <b>已驳回（2）</b>
+            <div class="review-ticket rejected">
+              <strong>CASE-DRAFT-2025-0518-007</strong>
+              <p>泵噪声异常处理案例</p>
+              <span>驳回原因：缺少拆检图片与部件型号</span>
+            </div>
+            <div class="review-ticket rejected">
+              <strong>CASE-DRAFT-2025-0517-009</strong>
+              <p>泵效率下降分析案例</p>
+              <span>驳回原因：工况参数不足</span>
+            </div>
+          </div>
+        </div>
+      </article>
+      <article class="impact-panel">
+        <h3>3 影响分析与知识资产更新</h3>
+        <div class="section-image-card impact-image">
+          <img src="/static/assets/marketing/tri-mro-knowledge-pipeline-image2.png" alt="知识写入流水线配图"/>
+          <span>审核、影响分析、图谱更新、索引更新和回滚记录</span>
+        </div>
+        <div class="impact-list">
+          <div><b>受影响部件</b><span>机械密封、叶轮、泵轴</span></div>
+          <div><b>受影响故障</b><span>密封泄漏、端面磨损、安装偏差</span></div>
+          <div><b>知识图谱更新</b><em>待执行</em><span>预计新增 12 个节点、24 条关系</span></div>
+          <div><b>检索索引更新</b><em>待执行</em><span>预计新增 8 个文档、嵌入向量 128 条</span></div>
+          <div><b>回归评测</b><em>未执行</em><span>预计运行 312 个评测用例</span></div>
+          <div><b>回滚记录</b><em class="done">已生成</em><span>rollback_id：rb_2026_0519_001</span></div>
+        </div>
+        <p class="knowledge-warning">未审核案例不会进入正式知识库，避免知识污染，保障系统可靠与合规。</p>
+      </article>
+    </div>
+    <div class="write-pipeline">
+      <span>当前任务</span><i></i><span>生成草稿</span><i></i><span>待审核</span><i></i><span>审核通过/驳回</span><i></i><span>写入案例库</span><i></i><span>更新图谱</span><i></i><span>更新索引</span><i></i><span>回归评测</span><i></i><span>生成回滚号</span>
+    </div>
+  </section>
+
+  <section id="metrics" class="scene metrics-section">
+    <div class="section-heading centered">
+      <h2>不是堆功能，而是用<span>指标证明</span>可信检修能力</h2>
+      <p>评测直接绑定检修判断卡、安全闸门、部件约束和知识写入流水线。</p>
+    </div>
+    <div class="metric-cards">
+      <article><b>关键结论可追溯率</b><strong>95.3%</strong><span>↑ 14.6% 相对提升</span></article>
+      <article><b>三链对齐覆盖率</b><strong>92.6%</strong><span>↑ 12.4% 相对提升</span></article>
+      <article><b>CAD 部件定位</b><strong>92.5%</strong><span>首位命中 / 前三命中 97.1%</span></article>
+      <article><b>高风险步骤阻断率</b><strong class="red">99.2%</strong><span>安全闸门有效拦截</span></article>
+      <article><b>拒答合理率</b><strong class="amber">97.1%</strong><span>证据不足时合理拒答</span></article>
+      <article><b>知识更新后召回提升率</b><strong>38.7%</strong><span>案例写入后知识生效</span></article>
+      <article><b>知识污染拦截率</b><strong>98.7%</strong><span>脏数据/冲突数据拦截</span></article>
+    </div>
+    <div class="metrics-grid">
+      <article class="comparison-matrix">
+        <h3>四组对比评测</h3>
+        <table>
+          <thead><tr><th>评测维度</th><th>无 RAG</th><th>文本 RAG</th><th>多模态 RAG</th><th>Tri-MRO 完整系统</th></tr></thead>
+          <tbody>
+            <tr><td>前五召回率</td><td>52.1%</td><td>68.4%</td><td>82.6%</td><td class="best">92.6%</td></tr>
+            <tr><td>引用覆盖率</td><td>41.3%</td><td>62.2%</td><td>76.8%</td><td class="best">88.1%</td></tr>
+            <tr><td>SOP 完整度</td><td>28.6%</td><td>51.4%</td><td>68.7%</td><td class="best">91.2%</td></tr>
+            <tr><td>安全漏检率</td><td class="bad">7.2%</td><td class="bad">3.6%</td><td class="warn">1.8%</td><td class="best">0.6%</td></tr>
+            <tr><td>三链对齐覆盖率</td><td>38.7%</td><td>61.9%</td><td>78.4%</td><td class="best">92.6%</td></tr>
+            <tr><td>高风险步骤阻断率</td><td>72.5%</td><td>91.3%</td><td>97.1%</td><td class="best">99.2%</td></tr>
+            <tr><td>拒答合理率</td><td>60.8%</td><td>78.5%</td><td>93.9%</td><td class="best">97.1%</td></tr>
+          </tbody>
+        </table>
+      </article>
+      <aside class="dataset-panel">
+        <h3>评测数据集</h3>
+        <div class="section-image-card metrics-image">
+          <img src="/static/assets/marketing/tri-mro-metrics-dashboard-image2.png" alt="创新指标评测配图"/>
+          <span>指标直接绑定检修判断卡、安全闸门与知识写入流水线</span>
+        </div>
+        <div class="case-row"><b>G01</b><span>电机轴承温升过高</span><small>手册 12 · 案例 36 · 图片 64 · CAD 2</small></div>
+        <div class="case-row"><b>G02</b><span>离心泵机械密封泄漏</span><small>手册 15 · 案例 42 · 图片 97 · CAD 3</small></div>
+        <div class="case-row"><b>G03</b><span>轴承外圈剥落</span><small>手册 10 · 案例 28 · 图片 41 · CAD 1</small></div>
+        <div class="case-row"><b>G04</b><span>发动机火花塞检查</span><small>手册 8 · 案例 24 · 图片 36 · CAD 1</small></div>
+        <div class="case-row adverse"><b>A01</b><span>证据不足是否应拒答</span><small>证据链缺失 · 正确拒答</small></div>
+        <div class="case-row adverse"><b>A02</b><span>直接拆卸是否应阻断</span><small>高风险步骤 · 阻断验证</small></div>
+      </aside>
+    </div>
+    <div class="resource-strip">
+      <article><b>手册资料</b><span>已校验</span></article>
+      <article><b>图片资产</b><span>已校验</span></article>
+      <article><b>结构模型</b><span>已校验</span></article>
+      <article><b>许可证</b><span>开源合规 100%</span></article>
+      <article><b>SHA256 校验</b><span>一致性 100%</span></article>
+      <article><b>转换报告</b><span>成功率 99.4%</span></article>
+      <article><b>兜底状态</b><span>离线可用</span></article>
+    </div>
+  </section>
+
+  <section class="final-cta scene">
+    <h2>把“能回答”升级为“可执行、可阻断、可沉淀”</h2>
+    <p>Tri-MRO 让普通检修建议变成有证据、有结构、有安全控制、有知识闭环的可信作业流程。</p>
+    <a class="primary-action" href="/" target="_blank" rel="noreferrer">进入 Tri-MRO 工作台</a>
+  </section>
+</main>
+
+<script src="/static/marketing.js?v=storyboard-rebuild-20260516-v1"></script>
+</body>
+</html>

@@ -20,6 +20,7 @@ INCLUDE_DIRS = (
 INCLUDE_FILES = (
     "README.md",
     "requirements.txt",
+    "requirements-3d.txt",
     "requirements-dev.txt",
     ".env.example",
     ".gitignore",
@@ -78,12 +79,19 @@ def is_excluded(path: Path) -> bool:
 def data_files() -> list[Path]:
     candidates: list[Path] = [
         ROOT / "data" / "sources" / "public_manual_sources.json",
+        ROOT / "data" / "sources" / "external_reference_resources.json",
+        ROOT / "data" / "sources" / "verified_resources.json",
         ROOT / "data" / "raw" / "manuals" / "README.md",
         ROOT / "data" / "review" / "mechanical_cases_review.csv",
         ROOT / "data" / "review" / "eval_questions_review.csv",
         ROOT / "data" / "image_eval" / "README.md",
         ROOT / "data" / "image_eval" / "fault_image_eval_manifest.csv",
         ROOT / "data" / "image_eval" / "commons_image_sources.json",
+        ROOT / "data" / "3d" / "standard_models.json",
+        ROOT / "data" / "3d" / "free_external_models_verification.json",
+        ROOT / "data" / "3d" / "professional_route_costs.json",
+        ROOT / "data" / "3d" / "authorized_models" / "manifest.json",
+        ROOT / "data" / "3d" / "authorized_models" / "verification_report.json",
     ]
 
     manuals_dir = ROOT / "data" / "raw" / "manuals"
@@ -94,6 +102,17 @@ def data_files() -> list[Path]:
     image_dir = ROOT / "data" / "image_eval" / "images"
     if image_dir.exists():
         candidates.extend(path for path in image_dir.iterdir() if path.is_file())
+
+    authorized_3d_dir = ROOT / "data" / "3d" / "authorized_models"
+    if authorized_3d_dir.exists():
+        candidates.extend(
+            path
+            for path in authorized_3d_dir.rglob("*")
+            if path.is_file() and "tmp" not in path.relative_to(authorized_3d_dir).parts
+        )
+    public_3d_dir = ROOT / "data" / "3d" / "public" / "authorized"
+    if public_3d_dir.exists():
+        candidates.extend(path for path in public_3d_dir.rglob("*") if path.is_file())
     return candidates
 
 
@@ -142,6 +161,7 @@ This archive is a license-safe source and documentation package for the A1 maint
 - Mechanical review CSV templates
 - Multimodal image evaluation manifest and status report
 - License-traced Wikimedia Commons image evaluation candidates
+- Authorized 3D CAD/GLB asset manifest, sidecar metadata, conversion logs, verification report, and local authorized GLB demos
 
 ## Excluded
 
@@ -153,6 +173,8 @@ This archive is a license-safe source and documentation package for the A1 maint
 PDF manuals are not redistributed by this package. The source URLs and license notes are retained in `data/sources/public_manual_sources.json` and `*.source.json` files for traceable re-download and citation.
 
 Image evaluation assets under `data/image_eval/images/` are curated public Wikimedia Commons thumbnails. Their source pages and license notes are retained in `data/image_eval/commons_image_sources.json`.
+
+The local 3D demos keep the original FreeCAD-library STEP/FCStd source, converted GLB, sidecar annotations, conversion reports, and verification report together under `data/3d/authorized_models/` and `data/3d/public/authorized/`.
 
 ## File List
 

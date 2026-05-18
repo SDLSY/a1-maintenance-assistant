@@ -17,6 +17,8 @@ def guess_equipment(text: str, filename: str) -> str:
         return "pump"
     if any(word in haystack for word in ["bearing", "轴承", "6205"]):
         return "bearing"
+    if any(word in haystack for word in ["engine", "发动机", "火花塞", "气缸", "压缩压力"]):
+        return "engine"
     if any(word in haystack for word in ["motor", "电机", "异步"]):
         return "motor"
     return "general"
@@ -33,13 +35,19 @@ def guess_fault(text: str) -> str:
         return "振动/异响"
     if any(word in text for word in ["绝缘", "绕组"]):
         return "绝缘下降"
+    if any(word in text for word in ["火花塞", "点火", "间隙"]):
+        return "火花塞检查"
+    if any(word in text for word in ["压缩压力", "气缸压力"]):
+        return "压缩压力异常"
+    if any(word in text for word in ["水泵", "机油泵"]):
+        return "泵系检查"
     if any(word in text for word in ["剥落", "磨损", "保持架"]):
         return "磨损/剥落"
     return "通用检修"
 
 
 def guess_component(text: str) -> str:
-    for component in ["轴承", "机械密封", "叶轮", "联轴器", "绕组", "端盖", "泵轴", "安全"]:
+    for component in ["火花塞", "起动电机", "发动机", "气缸头", "气门", "活塞", "机油泵", "水泵", "离合器", "传动装置", "曲轴", "轴承", "机械密封", "叶轮", "联轴器", "绕组", "端盖", "泵轴", "安全"]:
         if component in text:
             return component
     return "设备"
@@ -185,7 +193,12 @@ def source_metadata_for(path: Path) -> dict:
         return {}
 
 
-def ingest_directory(conn: sqlite3.Connection, directory: Path = RAW_MANUAL_DIR) -> dict:
+def ingest_directory(
+    conn: sqlite3.Connection,
+    directory: Path = RAW_MANUAL_DIR,
+    *,
+    rebuild: bool = True,
+) -> dict:
     directory.mkdir(parents=True, exist_ok=True)
     results = []
     for path in sorted(directory.rglob("*")):
@@ -202,7 +215,7 @@ def ingest_directory(conn: sqlite3.Connection, directory: Path = RAW_MANUAL_DIR)
                     rebuild=False,
                 )
             )
-    rebuild_result = rebuild_embeddings(conn) if results else {}
+    rebuild_result = rebuild_embeddings(conn) if results and rebuild else {"skipped": not rebuild}
     return {
         "directory": str(directory),
         "documents": results,

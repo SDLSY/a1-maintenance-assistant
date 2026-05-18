@@ -132,6 +132,145 @@ def test_sync_case_upserts_local_case_to_supabase(monkeypatch, tmp_path) -> None
     conn.close()
 
 
+def test_sync_case_retries_legacy_supabase_schema_without_work_order_columns(monkeypatch, tmp_path) -> None:
+    from backend.app import supabase_sync
+
+    db_path = tmp_path / "cases.db"
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    init_db(conn)
+    cursor = conn.execute(
+        """
+        INSERT INTO maintenance_cases
+        (title, equipment, model, symptoms, fault_type, cause, actions, parts,
+         risk_level, status, work_order_status, approved_at, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            "演示验收：电机端盖油污",
+            "motor",
+            "Y2-160M",
+            "端盖油污和温升",
+            "过热/油污",
+            "密封老化",
+            "停机断电挂牌后拆检端盖",
+            "密封圈",
+            "medium",
+            "approved",
+            "archived",
+            "2026-05-12T09:00:00",
+            "2026-05-12T08:00:00",
+        ),
+    )
+    case_id = cursor.lastrowid
+    conn.commit()
+
+    calls: list[dict] = []
+
+    monkeypatch.setenv("SUPABASE_ENABLED", "true")
+    monkeypatch.setenv("SUPABASE_URL", "https://demo.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "test-secret-token")
+    monkeypatch.setenv("SUPABASE_TABLE_PREFIX", "a1_")
+
+    def fake_request(method, url, headers, payload=None):
+        calls.append({"method": method, "url": url, "headers": headers, "payload": payload})
+        if len(calls) == 1:
+            raise RuntimeError("HTTP 400: Could not find the 'approved_at' column")
+        return []
+
+    monkeypatch.setattr(supabase_sync, "_request_json", fake_request)
+
+    result = supabase_sync.sync_case(conn, case_id)
+
+    assert result["ok"] is True
+    assert result["fallback"] == "legacy_case_columns"
+    assert len(calls) == 2
+    assert "approved_at" in calls[0]["payload"]
+    assert "work_order_status" in calls[0]["payload"]
+    assert "approved_at" not in calls[1]["payload"]
+    assert "work_order_status" not in calls[1]["payload"]
+    conn.close()
+
+
+def test_supabase_pull_preserves_local_approval_when_remote_is_unreviewed(monkeypatch, tmp_path) -> None:
+    from backend.app import supabase_sync
+
+    db_path = tmp_path / "pull-preserve.db"
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    init_db(conn)
+    conn.execute(
+        """
+        INSERT INTO maintenance_cases
+        (id, title, equipment, model, symptoms, fault_type, cause, actions, parts,
+         risk_level, status, created_at, review_status, reviewer, review_notes,
+         work_order_status, approved_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            7,
+            "local approved case",
+            "pump",
+            "ISG80-160",
+            "seal leak",
+            "leakage",
+            "seal wear",
+            "replace seal",
+            "mechanical seal",
+            "high",
+            "approved",
+            "2026-05-12T08:00:00",
+            "approved",
+            "ME-R02",
+            "checked locally",
+            "archived",
+            "2026-05-12T09:00:00",
+        ),
+    )
+    conn.commit()
+
+    monkeypatch.setenv("SUPABASE_ENABLED", "true")
+    monkeypatch.setenv("SUPABASE_URL", "https://demo.supabase.co")
+    monkeypatch.setenv("SUPABASE_SERVICE_ROLE_KEY", "test-secret-token")
+
+    def fake_request(method, url, headers, payload=None):
+        if "maintenance_cases" in url:
+            return [
+                {
+                    "local_id": 7,
+                    "title": "remote older case",
+                    "equipment": "pump",
+                    "model": "ISG80-160",
+                    "symptoms": "seal leak",
+                    "fault_type": "leakage",
+                    "cause": "seal wear",
+                    "actions": "replace seal",
+                    "parts": "mechanical seal",
+                    "risk_level": "high",
+                    "status": "pending",
+                    "review_status": "unreviewed",
+                    "reviewer": "",
+                    "review_notes": "",
+                }
+            ]
+        if "feedback" in url:
+            return []
+        return []
+
+    monkeypatch.setattr(supabase_sync, "_request_json", fake_request)
+
+    result = supabase_sync.pull_mutable_data(conn)
+    row = conn.execute("SELECT * FROM maintenance_cases WHERE id = 7").fetchone()
+
+    assert result["ok"] is True
+    assert row["title"] == "remote older case"
+    assert row["review_status"] == "approved"
+    assert row["reviewer"] == "ME-R02"
+    assert row["review_notes"] == "checked locally"
+    assert row["work_order_status"] == "archived"
+    conn.close()
+
+
 def test_prepare_cloudflare_site_generates_static_config(tmp_path) -> None:
     from scripts.prepare_cloudflare_site import prepare_cloudflare_site
 

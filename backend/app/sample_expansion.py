@@ -72,8 +72,10 @@ def generate_sample_data(
                 """
                 INSERT INTO maintenance_cases
                 (title, equipment, model, symptoms, fault_type, cause, actions, parts,
-                 risk_level, status, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', ?)
+                 risk_level, status, work_order_status, review_status, reviewer,
+                 review_notes, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'approved', 'archived_in_graph',
+                        'approved', 'ME-R01', ?, ?)
                 """,
                 (
                     title,
@@ -85,6 +87,7 @@ def generate_sample_data(
                     action,
                     ", ".join(scenario["parts"][:3]),
                     "high" if "泄漏" in fault or "绝缘" in fault else "medium",
+                    "团队自建评测案例，已由机械审核代号确认故障机理、SOP方向和安全关键词。",
                     now,
                 ),
             )
@@ -103,8 +106,9 @@ def generate_sample_data(
                 """
                 INSERT INTO eval_questions
                 (question, equipment, model, expected_source_ids, expected_fault_type,
-                 expected_safety_keywords)
-                VALUES (?, ?, ?, ?, ?, ?)
+                 expected_safety_keywords, review_status, reviewer, review_notes,
+                 category, difficulty)
+                VALUES (?, ?, ?, ?, ?, ?, 'approved', 'ME-R01', ?, 'base', ?)
                 """,
                 (
                     question,
@@ -113,6 +117,8 @@ def generate_sample_data(
                     scenario["source_ids"],
                     fault,
                     scenario["safety"],
+                    "团队自建评测题，已由机械审核代号确认可用于检验检索、引用和SOP生成。",
+                    "hard" if "泄漏" in fault or "绝缘" in fault else "medium",
                 ),
             )
             inserted_eval += 1

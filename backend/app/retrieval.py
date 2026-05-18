@@ -11,6 +11,7 @@ EQUIPMENT_LABELS = {
     "motor": "电机",
     "pump": "离心泵",
     "bearing": "轴承",
+    "engine": "发动机",
     "general": "通用规范",
 }
 
@@ -41,6 +42,8 @@ class RetrievalHit:
     confidence: float
     source_url: str = ""
     license: str = ""
+    modality: str = "text"
+    image_caption: str = ""
 
 
 def base_tokenize(text: str) -> list[str]:
@@ -91,6 +94,9 @@ def describe_image(filename: str, hint: str = "") -> dict:
     elif any(word in text for word in ["motor", "电机", "heat", "hot"]):
         tags = ["电机", "过热", "端盖", "轴承"]
         caption = "图片疑似显示电机端盖或轴承区域异常，可能与过热、油污或通风不良相关。"
+    elif any(word in text for word in ["engine", "spark", "plug", "发动机", "火花塞"]):
+        tags = ["发动机", "火花塞", "压缩压力", "起动系统"]
+        caption = "图片疑似显示发动机火花塞、气缸头或起动相关部件，需要结合压缩压力、火花塞间隙和拆装扭矩复核。"
     else:
         tags = ["设备异常", "磨损", "泄漏", "过热"]
         caption = "图片已接收。未接入云端视觉模型时，系统按设备异常通用标签参与检索。"
@@ -168,6 +174,8 @@ def retrieve(
                     fault_type=row["fault_type"],
                     component=row["component"],
                     confidence=0.0,
+                    modality=row["modality"],
+                    image_caption=row["image_caption"],
                 )
             )
 

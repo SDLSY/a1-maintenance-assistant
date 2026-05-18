@@ -4,12 +4,17 @@
 data/maintenance.db
 data/test-maintenance.db
 data/uploads/
+data/photo_to_3d_real/**/dataset/
+data/photo_to_3d_real/**/prepared_images/
+data/photo_to_3d_real/**/reconstruction/database.db
 __pycache__/
 .pytest_cache/
 .playwright-cli/
+.superpowers/
 node_modules/
 dist/
 tmp/
+tools/openscad/
 data/raw/manuals/public/*.pdf
 materials/*.pptx
 materials/*.docx

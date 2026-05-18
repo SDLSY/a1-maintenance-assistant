@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
+import urllib.error
 import urllib.parse
 import urllib.request
 from dataclasses import dataclass
@@ -10,6 +11,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 TRUE_VALUES = {"1", "true", "yes", "on"}
+OPTIONAL_CASE_COLUMNS = {"approved_at", "work_order_status"}
 
 
 @dataclass(frozen=True)
@@ -92,11 +94,15 @@ def _request_json(
 ) -> Any:
     data = None if payload is None else json.dumps(payload).encode("utf-8")
     request = urllib.request.Request(url, data=data, headers=headers, method=method)
-    with urllib.request.urlopen(request, timeout=45) as response:
-        body = response.read().decode("utf-8")
-        if not body:
-            return []
-        return json.loads(body)
+    try:
+        with urllib.request.urlopen(request, timeout=45) as response:
+            body = response.read().decode("utf-8")
+            if not body:
+                return []
+            return json.loads(body)
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"HTTP {exc.code}: {body}") from exc
 
 
 def _disabled_result(action: str, config: SupabaseConfig) -> dict:
@@ -113,9 +119,12 @@ def _row_dict(row: sqlite3.Row) -> dict:
     return {key: row[key] for key in row.keys()}
 
 
-def _case_payload(row: sqlite3.Row) -> dict:
+def _case_payload(row: sqlite3.Row, *, include_optional_columns: bool = True) -> dict:
     data = _row_dict(row)
     local_id = data.pop("id")
+    if not include_optional_columns:
+        for column in OPTIONAL_CASE_COLUMNS:
+            data.pop(column, None)
     data["local_id"] = local_id
     data["updated_at"] = datetime.now(UTC).isoformat(timespec="seconds")
     return data
@@ -149,12 +158,33 @@ def sync_case(conn: sqlite3.Connection, case_id: int) -> dict:
         _upsert(config, "maintenance_cases", _case_payload(row))
         return {"ok": True, "action": "sync_case", "local_id": case_id, "table": config.table("maintenance_cases")}
     except Exception as exc:  # noqa: BLE001 - deployment relays vary.
+        message = str(exc)
+        missing_optional_case_column = (
+            "Could not find" in message
+            and any(column in message for column in OPTIONAL_CASE_COLUMNS)
+        )
+        if missing_optional_case_column:
+            try:
+                _upsert(
+                    config,
+                    "maintenance_cases",
+                    _case_payload(row, include_optional_columns=False),
+                )
+                return {
+                    "ok": True,
+                    "action": "sync_case",
+                    "local_id": case_id,
+                    "table": config.table("maintenance_cases"),
+                    "fallback": "legacy_case_columns",
+                }
+            except Exception as fallback_exc:  # noqa: BLE001
+                message = f"{message}; legacy retry failed: {fallback_exc}"
         return {
             "ok": False,
             "action": "sync_case",
             "local_id": case_id,
             "table": config.table("maintenance_cases"),
-            "error": config.sanitize(str(exc)),
+            "error": config.sanitize(message),
         }
 
 
@@ -211,8 +241,24 @@ def _upsert_local_case(conn: sqlite3.Connection, item: dict) -> bool:
     local_id = item.get("local_id")
     if not local_id:
         return False
+    local_id_int = int(local_id)
+    existing = conn.execute(
+        """
+        SELECT review_status, reviewer, review_notes, work_order_status, approved_at
+        FROM maintenance_cases
+        WHERE id = ?
+        """,
+        (local_id_int,),
+    ).fetchone()
+    incoming_review_status = str(item.get("review_status") or "unreviewed").strip()
+    reviewer = str(item.get("reviewer") or "")
+    review_notes = str(item.get("review_notes") or "")
+    if existing and existing["review_status"] == "approved" and incoming_review_status in {"", "unreviewed"}:
+        incoming_review_status = existing["review_status"]
+        reviewer = existing["reviewer"] or reviewer
+        review_notes = existing["review_notes"] or review_notes
     values = {
-        "id": int(local_id),
+        "id": local_id_int,
         "title": item.get("title", ""),
         "equipment": item.get("equipment", "motor"),
         "model": item.get("model", ""),
@@ -224,18 +270,23 @@ def _upsert_local_case(conn: sqlite3.Connection, item: dict) -> bool:
         "risk_level": item.get("risk_level", "medium"),
         "status": item.get("status", "pending"),
         "created_at": item.get("created_at") or datetime.now(UTC).isoformat(timespec="seconds"),
-        "review_status": item.get("review_status", "unreviewed"),
-        "reviewer": item.get("reviewer", ""),
-        "review_notes": item.get("review_notes", ""),
+        "review_status": incoming_review_status,
+        "reviewer": reviewer,
+        "review_notes": review_notes,
+        "work_order_status": item.get("work_order_status")
+        or (existing["work_order_status"] if existing else "pending_review"),
+        "approved_at": item.get("approved_at") or (existing["approved_at"] if existing else ""),
     }
     conn.execute(
         """
         INSERT INTO maintenance_cases
         (id, title, equipment, model, symptoms, fault_type, cause, actions, parts,
-         risk_level, status, created_at, review_status, reviewer, review_notes)
+         risk_level, status, created_at, review_status, reviewer, review_notes,
+         work_order_status, approved_at)
         VALUES
         (:id, :title, :equipment, :model, :symptoms, :fault_type, :cause, :actions, :parts,
-         :risk_level, :status, :created_at, :review_status, :reviewer, :review_notes)
+         :risk_level, :status, :created_at, :review_status, :reviewer, :review_notes,
+         :work_order_status, :approved_at)
         ON CONFLICT(id) DO UPDATE SET
           title=excluded.title,
           equipment=excluded.equipment,
@@ -249,7 +300,9 @@ def _upsert_local_case(conn: sqlite3.Connection, item: dict) -> bool:
           status=excluded.status,
           review_status=excluded.review_status,
           reviewer=excluded.reviewer,
-          review_notes=excluded.review_notes
+          review_notes=excluded.review_notes,
+          work_order_status=excluded.work_order_status,
+          approved_at=excluded.approved_at
         """,
         values,
     )

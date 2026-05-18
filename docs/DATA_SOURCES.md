@@ -34,6 +34,23 @@ data/sources/public_manual_sources.json
 
 下载脚本会把 PDF 放到 `data/raw/manuals/public`，并为每个文件写入 `*.source.json` sidecar。后端入库会读取 sidecar 中的 `source_url`、`license` 和 `version` 字段，确保查询引用能追溯来源。
 
+## A1-MAKG 外部参考与官方样例
+
+新增资源清单位于：
+
+```text
+data/sources/external_reference_resources.json
+```
+
+二次验证输出：
+
+```text
+data/sources/verified_resources.json
+docs/EXTERNAL_RESOURCE_VERIFICATION.md
+```
+
+官方《摩托车发动机维修手册.pdf》作为 A1 样例资料纳入 `data/raw/manuals/official/`，设备类型为 `engine`。该文件用于本地比赛研究和演示，不默认随提交包重新分发。
+
 ## 公开数据集
 
 - MVTec AD：工业缺陷图像，可用于视觉故障检索演示。
