@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "created_for": "A1 多模态设备检修知识检索与作业辅助系统",
+  "created_for": "A1-MAKG：面向设备检修的多模态证据链作业辅助系统",
   "usage_note": "These public URLs are for local contest research and citation tracking. Do not redistribute downloaded manuals without checking the rights holder's terms.",
   "sources": [
     {

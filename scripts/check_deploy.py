@@ -38,6 +38,7 @@ def main() -> None:
             "fastapi": module_status("fastapi"),
             "uvicorn": module_status("uvicorn"),
             "pypdf": module_status("pypdf"),
+            "neo4j": module_status("neo4j"),
         },
         "providers": safe_provider_report(),
         "supabase": supabase_public_status(),

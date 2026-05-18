@@ -1,0 +1,453 @@
+{
+  "generated_at": "2026-05-12T05:35:50",
+  "manifest": "data/sources/external_reference_resources.json",
+  "summary": {
+    "total": 15,
+    "verified": 13,
+    "blocked": 2,
+    "failed": 0,
+    "critical_failures": []
+  },
+  "resources": [
+    {
+      "id": "official-motorcycle-engine-manual",
+      "type": "official_sample_manual",
+      "title": "摩托车发动机维修手册",
+      "source_url": "local:D:/30726/Desktop/竞赛目录/摩托车发动机维修手册.pdf",
+      "usage": "A1 official sample manual adaptation and engine maintenance retrieval demo",
+      "license": "contest-provided local sample; redistribution requires contest permission",
+      "verified_at": "2026-05-12T05:35:40",
+      "exists": true,
+      "local_path": "data/raw/manuals/official/motorcycle-engine-maintenance-manual.pdf",
+      "verify_status": "verified",
+      "critical": true,
+      "checks": {
+        "pages": 41,
+        "expected_pages": 41,
+        "keyword_hits": [
+          "摩托车发动机维修手册",
+          "火花塞",
+          "起动电机",
+          "发动机",
+          "压缩压力"
+        ],
+        "keyword_hit_count": 5,
+        "extract_error": "",
+        "render": {
+          "rendered": true,
+          "path": "data/external/references/official/rendered/official-motorcycle-engine-manual.png",
+          "width": 1756,
+          "height": 2482,
+          "mean_luma": 252.67
+        }
+      },
+      "sha256": "aad3c07269b2469e8e0d01357d2808fe6a3245501c82b557f61b700b7caadb43",
+      "size_bytes": 17615124
+    },
+    {
+      "id": "ragflow",
+      "type": "github_project",
+      "title": "infiniflow/ragflow",
+      "source_url": "https://github.com/infiniflow/ragflow",
+      "usage": "reference for document parsing, citations, and agentic RAG design",
+      "license": "verify from repository LICENSE",
+      "verified_at": "2026-05-12T05:35:41",
+      "verify_status": "verified",
+      "critical": false,
+      "local_path": "data/external/references/github/ragflow",
+      "checks": {
+        "metadata": {
+          "full_name": "infiniflow/ragflow",
+          "description": "RAGFlow is a leading open-source Retrieval-Augmented Generation (RAG) engine that fuses cutting-edge RAG with Agent capabilities to create a superior context layer for LLMs",
+          "default_branch": "main",
+          "html_url": "https://github.com/infiniflow/ragflow",
+          "pushed_at": "2026-05-12T05:05:21Z",
+          "stargazers_count": 80289,
+          "license": "Apache-2.0"
+        },
+        "readme": {
+          "ok": true
+        },
+        "license_file": {
+          "ok": true
+        },
+        "keyword_hits": [
+          "RAGFlow",
+          "RAG",
+          "document",
+          "Agent"
+        ]
+      },
+      "sha256": ""
+    },
+    {
+      "id": "rag-anything",
+      "type": "github_project",
+      "title": "HKUDS/RAG-Anything",
+      "source_url": "https://github.com/HKUDS/RAG-Anything",
+      "usage": "reference for unified multimodal resource units",
+      "license": "verify from repository LICENSE",
+      "verified_at": "2026-05-12T05:35:42",
+      "verify_status": "verified",
+      "critical": false,
+      "local_path": "data/external/references/github/rag-anything",
+      "checks": {
+        "metadata": {
+          "full_name": "HKUDS/RAG-Anything",
+          "description": "\"RAG-Anything: All-in-One RAG Framework\"",
+          "default_branch": "main",
+          "html_url": "https://github.com/HKUDS/RAG-Anything",
+          "pushed_at": "2026-05-11T09:19:29Z",
+          "stargazers_count": 20072,
+          "license": "MIT"
+        },
+        "readme": {
+          "ok": true
+        },
+        "license_file": {
+          "ok": true
+        },
+        "keyword_hits": [
+          "RAG-Anything",
+          "multimodal",
+          "image",
+          "table"
+        ]
+      },
+      "sha256": ""
+    },
+    {
+      "id": "colette",
+      "type": "github_project",
+      "title": "jolibrain/colette",
+      "source_url": "https://github.com/jolibrain/colette",
+      "usage": "reference for visual document page retrieval",
+      "license": "verify from repository LICENSE",
+      "verified_at": "2026-05-12T05:35:43",
+      "verify_status": "verified",
+      "critical": false,
+      "local_path": "data/external/references/github/colette",
+      "checks": {
+        "metadata": {
+          "full_name": "jolibrain/colette",
+          "description": "Multimodal RAG to search and interact locally with technical documents of any kind",
+          "default_branch": "main",
+          "html_url": "https://github.com/jolibrain/colette",
+          "pushed_at": "2026-04-10T14:27:56Z",
+          "stargazers_count": 287,
+          "license": "NOASSERTION"
+        },
+        "readme": {
+          "ok": true
+        },
+        "license_file": {
+          "ok": false
+        },
+        "keyword_hits": [
+          "Colette",
+          "Vision",
+          "RAG",
+          "document"
+        ]
+      },
+      "sha256": ""
+    },
+    {
+      "id": "visrag",
+      "type": "github_project",
+      "title": "OpenBMB/VisRAG",
+      "source_url": "https://github.com/openbmb/visrag",
+      "usage": "reference for parsing-free visual RAG evidence",
+      "license": "verify from repository LICENSE",
+      "verified_at": "2026-05-12T05:35:44",
+      "verify_status": "verified",
+      "critical": false,
+      "local_path": "data/external/references/github/visrag",
+      "checks": {
+        "metadata": {
+          "full_name": "OpenBMB/VisRAG",
+          "description": "Parsing-free RAG supported by VLMs",
+          "default_branch": "master",
+          "html_url": "https://github.com/OpenBMB/VisRAG",
+          "pushed_at": "2025-12-07T07:45:09Z",
+          "stargazers_count": 953,
+          "license": "Apache-2.0"
+        },
+        "readme": {
+          "ok": true
+        },
+        "license_file": {
+          "ok": true
+        },
+        "keyword_hits": [
+          "VisRAG",
+          "Vision",
+          "Retrieval",
+          "Generation"
+        ]
+      },
+      "sha256": ""
+    },
+    {
+      "id": "lightrag",
+      "type": "github_project",
+      "title": "HKUDS/LightRAG",
+      "source_url": "https://github.com/HKUDS/LightRAG",
+      "usage": "reference for lightweight graph-enhanced retrieval",
+      "license": "verify from repository LICENSE",
+      "verified_at": "2026-05-12T05:35:45",
+      "verify_status": "verified",
+      "critical": false,
+      "local_path": "data/external/references/github/lightrag",
+      "checks": {
+        "metadata": {
+          "full_name": "HKUDS/LightRAG",
+          "description": "[EMNLP2025] \"LightRAG: Simple and Fast Retrieval-Augmented Generation\"",
+          "default_branch": "main",
+          "html_url": "https://github.com/HKUDS/LightRAG",
+          "pushed_at": "2026-05-12T03:30:54Z",
+          "stargazers_count": 35056,
+          "license": "MIT"
+        },
+        "readme": {
+          "ok": true
+        },
+        "license_file": {
+          "ok": true
+        },
+        "keyword_hits": [
+          "LightRAG",
+          "knowledge graph",
+          "RAG",
+          "evaluation"
+        ]
+      },
+      "sha256": ""
+    },
+    {
+      "id": "microsoft-graphrag",
+      "type": "github_project",
+      "title": "microsoft/graphrag",
+      "source_url": "https://github.com/microsoft/graphrag",
+      "usage": "reference for graph memory and evidence organization",
+      "license": "verify from repository LICENSE",
+      "verified_at": "2026-05-12T05:35:46",
+      "verify_status": "verified",
+      "critical": false,
+      "local_path": "data/external/references/github/microsoft-graphrag",
+      "checks": {
+        "metadata": {
+          "full_name": "microsoft/graphrag",
+          "description": "A modular graph-based Retrieval-Augmented Generation (RAG) system",
+          "default_branch": "main",
+          "html_url": "https://github.com/microsoft/graphrag",
+          "pushed_at": "2026-05-11T22:33:23Z",
+          "stargazers_count": 32923,
+          "license": "MIT"
+        },
+        "readme": {
+          "ok": true
+        },
+        "license_file": {
+          "ok": true
+        },
+        "keyword_hits": [
+          "GraphRAG",
+          "knowledge graph",
+          "RAG",
+          "structured data"
+        ]
+      },
+      "sha256": ""
+    },
+    {
+      "id": "atlas-cmms",
+      "type": "github_project",
+      "title": "Grashjs/cmms",
+      "source_url": "https://github.com/Grashjs/cmms",
+      "usage": "reference for maintenance work-order workflow",
+      "license": "verify from repository LICENSE",
+      "verified_at": "2026-05-12T05:35:47",
+      "verify_status": "verified",
+      "critical": false,
+      "local_path": "data/external/references/github/atlas-cmms",
+      "checks": {
+        "metadata": {
+          "full_name": "Grashjs/cmms",
+          "description": "#1 Self hosted CMMS web & mobile application that allows you to manage enterprise maintenance for free - Computerized Maintenance Management System",
+          "default_branch": "main",
+          "html_url": "https://github.com/Grashjs/cmms",
+          "pushed_at": "2026-05-11T16:58:01Z",
+          "stargazers_count": 615,
+          "license": "AGPL-3.0"
+        },
+        "readme": {
+          "ok": true
+        },
+        "license_file": {
+          "ok": true
+        },
+        "keyword_hits": [
+          "CMMS",
+          "maintenance",
+          "asset",
+          "work order"
+        ]
+      },
+      "sha256": ""
+    },
+    {
+      "id": "phm-technical-manual-rag",
+      "type": "paper",
+      "title": "An Evaluation Framework for Fault Diagnosis Using Technical Manuals in Retrieval-Augmented Large Language Models",
+      "source_url": "https://papers.phmsociety.org/index.php/phmconf/article/view/4549",
+      "usage": "reference for evaluation-first validation under realistic diagnostic conditions",
+      "license": "article page metadata",
+      "verified_at": "2026-05-12T05:35:48",
+      "verify_status": "verified",
+      "critical": false,
+      "local_path": "data/external/references/papers/phm-technical-manual-rag.pdf",
+      "checks": {
+        "ok": true,
+        "pages": 13,
+        "keyword_hits": [
+          "Fault Diagnosis",
+          "Technical Manuals",
+          "Retrieval-Augmented"
+        ],
+        "extract_error": "",
+        "content_type": "application/pdf"
+      },
+      "sha256": "270e8cb39684dc06a2ff2830898f60b1d3ca5f63a3c2b3beed47373897faaef9",
+      "size_bytes": 250684
+    },
+    {
+      "id": "robotic-arm-multimodal-rag",
+      "type": "paper",
+      "title": "A Multimodal RAG-based Maintenance Chatbot for Robotic Arm Manuals",
+      "source_url": "https://iroboticsjournal.org/index.php/irobotics/article/view/192",
+      "usage": "reference for text and visual maintenance manual pipelines",
+      "license": "Creative Commons Attribution 4.0 International",
+      "verified_at": "2026-05-12T05:35:48",
+      "verify_status": "verified",
+      "critical": false,
+      "local_path": "data/external/references/papers/robotic-arm-multimodal-rag.pdf",
+      "checks": {
+        "ok": true,
+        "pages": 10,
+        "keyword_hits": [
+          "Multimodal",
+          "RAG",
+          "Maintenance",
+          "Manuals"
+        ],
+        "extract_error": "",
+        "content_type": "application/pdf"
+      },
+      "sha256": "f1db1db4aed08f9eb15c21394d3d80cd0c8f5096b17f8d1cd5534819c99a6ded",
+      "size_bytes": 882523
+    },
+    {
+      "id": "kg2rag",
+      "type": "paper_page",
+      "title": "Knowledge Graph-Guided Retrieval Augmented Generation",
+      "source_url": "https://arxiv.org/abs/2502.06864",
+      "usage": "reference for graph-guided chunk expansion and organization",
+      "license": "arXiv paper metadata",
+      "verified_at": "2026-05-12T05:35:49",
+      "verify_status": "verified",
+      "critical": false,
+      "local_path": "data/external/references/papers/kg2rag.pdf",
+      "checks": {
+        "ok": true,
+        "pages": 13,
+        "keyword_hits": [
+          "Knowledge Graph-Guided",
+          "Retrieval Augmented Generation",
+          "KG",
+          "RAG"
+        ],
+        "extract_error": "",
+        "content_type": "application/pdf"
+      },
+      "sha256": "ae44b1df2a415e3f62c6fdd5cd87d9b3b8dfb87e21fa0bace95493bd1f43a40c",
+      "size_bytes": 864092
+    },
+    {
+      "id": "mllmda-kgc",
+      "type": "paper_page",
+      "title": "A knowledge graphs construction method enhanced by multimodal large language model for industrial equipment operation and maintenance",
+      "source_url": "https://www.sciencedirect.com/science/article/pii/S1474034625005981",
+      "usage": "reference for multimodal entity and relation extraction",
+      "license": "ScienceDirect abstract page; full text not redistributed",
+      "verified_at": "2026-05-12T05:35:49",
+      "verify_status": "blocked",
+      "critical": false,
+      "local_path": "data/external/references/papers/mllmda-kgc.html",
+      "checks": {},
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "id": "makg-maintenance",
+      "type": "paper_page",
+      "title": "A Multi-Agent and synergistic Knowledge Graph retrieval-augmented generation framework for intelligent maintenance",
+      "source_url": "https://www.sciencedirect.com/science/article/pii/S0278612526000452",
+      "usage": "reference for the MAKG system narrative",
+      "license": "ScienceDirect abstract page; full text not redistributed",
+      "verified_at": "2026-05-12T05:35:50",
+      "verify_status": "blocked",
+      "critical": false,
+      "local_path": "data/external/references/papers/makg-maintenance.html",
+      "checks": {},
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "id": "mvtec-ad-page",
+      "type": "dataset_page",
+      "title": "MVTec Anomaly Detection Dataset",
+      "source_url": "https://www.mvtec.com/research-teaching/datasets/mvtec-ad",
+      "usage": "optional industrial anomaly benchmark reference; full dataset not downloaded",
+      "license": "dataset page terms apply",
+      "verified_at": "2026-05-12T05:35:50",
+      "verify_status": "verified",
+      "critical": false,
+      "local_path": "data/external/references/datasets/mvtec-ad.html",
+      "checks": {
+        "ok": true,
+        "keyword_hits": [
+          "MVTec",
+          "Anomaly Detection",
+          "industrial inspection",
+          "dataset"
+        ],
+        "content_type": "text/html"
+      },
+      "sha256": "1b2528b494cfc1d50040cd51b7f6f27759f03e233eab0290e8e6fa98451995e5",
+      "size_bytes": 72592
+    },
+    {
+      "id": "openmaint",
+      "type": "project_page",
+      "title": "openMAINT latest version",
+      "source_url": "https://www.openmaint.org/en/download/latest-version",
+      "usage": "reference for maintenance workflow and asset-management product framing",
+      "license": "official project page metadata",
+      "verified_at": "2026-05-12T05:35:50",
+      "verify_status": "verified",
+      "critical": false,
+      "local_path": "data/external/references/projects/openmaint-latest-version.html",
+      "checks": {
+        "ok": true,
+        "keyword_hits": [
+          "openMAINT",
+          "maintenance",
+          "workflows",
+          "web-based"
+        ],
+        "content_type": "text/html"
+      },
+      "sha256": "b6f86612855829185a4712dec5c5f6426cdbc7b706108c386c51d334fb9ca4c5",
+      "size_bytes": 38406
+    }
+  ]
+}

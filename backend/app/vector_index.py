@@ -206,8 +206,52 @@ def upsert_embedding_vector(
     )
 
 
+def _load_query_embedding(conn: sqlite3.Connection, query_text: str, model: str) -> list[float] | None:
+    row = conn.execute(
+        "SELECT vector_json FROM query_embeddings WHERE query_hash = ? AND model = ?",
+        (text_hash(query_text), model),
+    ).fetchone()
+    if not row:
+        return None
+    try:
+        return json.loads(row["vector_json"])
+    except json.JSONDecodeError:
+        return None
+
+
+def _save_query_embedding(
+    conn: sqlite3.Connection,
+    query_text: str,
+    model: str,
+    vector: list[float],
+) -> None:
+    normalized = normalize_vector(vector)
+    conn.execute(
+        """
+        INSERT INTO query_embeddings
+        (query_hash, model, dim, vector_json, created_at)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(query_hash, model)
+        DO UPDATE SET
+            dim = excluded.dim,
+            vector_json = excluded.vector_json,
+            created_at = excluded.created_at
+        """,
+        (
+            text_hash(query_text),
+            model,
+            len(normalized),
+            json.dumps(normalized),
+            datetime.utcnow().isoformat(timespec="seconds"),
+        ),
+    )
+    conn.commit()
+
+
 def vector_score_map(conn: sqlite3.Connection, query_text: str) -> dict[tuple[str, int], float]:
     scores: dict[tuple[str, int], float] = {}
+    from .settings import settings
+
     model_rows = conn.execute(
         "SELECT model, COUNT(*) AS c FROM chunk_embeddings GROUP BY model ORDER BY c DESC"
     ).fetchall()
@@ -220,17 +264,21 @@ def vector_score_map(conn: sqlite3.Connection, query_text: str) -> dict[tuple[st
         if model == EMBEDDING_MODEL:
             query_vectors[model] = local_embedding(query_text)
             continue
+        if not settings.remote_query_embedding_enabled:
+            continue
+        cached = _load_query_embedding(conn, query_text, model)
+        if cached:
+            query_vectors[model] = cached
+            continue
         try:
             from .model_gateway import embed_texts
 
             remote = embed_texts([query_text])
-            query_vectors[model] = (
-                normalize_vector(remote["vectors"][0])
-                if remote["ok"] and remote["vectors"]
-                else local_embedding(query_text)
-            )
+            if remote["ok"] and remote["vectors"]:
+                query_vectors[model] = normalize_vector(remote["vectors"][0])
+                _save_query_embedding(conn, query_text, model, remote["vectors"][0])
         except Exception:
-            query_vectors[model] = local_embedding(query_text)
+            continue
 
     rows = conn.execute(
         "SELECT source_type, source_id, model, vector_json FROM chunk_embeddings"

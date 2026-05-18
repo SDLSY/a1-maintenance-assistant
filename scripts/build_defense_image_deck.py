@@ -40,9 +40,9 @@ SLIDES = [
         "goal": "建立国赛答辩的第一印象：这是一个面向真实设备检修作业的系统，不是通用 AI 聊天工具。",
         "layout": "左侧 55% 放大标题和副标题；右侧 45% 是工业检修台场景，包含电机、泵、轴承、手册和检修工单；底部放赛题和关键词。",
         "visual": "深蓝背景，右侧工业设备照片级质感但不过暗；标题区留足呼吸感；青绿色细线做技术感，不使用发光球、赛博网格或夸张机器人。",
-        "text": ["设备检修知识检索与作业辅助系统", "多模态大模型 · 手册证据 · SOP 合规 · 知识沉淀", "中国软件杯 A1 赛题"],
+        "text": ["A1-MAKG：面向设备检修的多模态证据链作业辅助系统", "多模态大模型 · 手册证据 · SOP 合规 · 知识沉淀", "中国软件杯 A1 赛题"],
         "prompt": (
-            f"{GLOBAL_STYLE}. Create slide 1 cover. Main title exactly: 设备检修知识检索与作业辅助系统. "
+            f"{GLOBAL_STYLE}. Create slide 1 cover. Main title exactly: A1-MAKG：面向设备检修的多模态证据链作业辅助系统. "
             "Subtitle exactly: 多模态大模型 · 手册证据 · SOP 合规 · 知识沉淀. "
             "Footer text exactly: 中国软件杯 A1 赛题. "
             "Composition: left side has large title and subtitle, right side shows a realistic industrial maintenance workbench with an electric motor, centrifugal pump, bearing parts, service manual pages and a work order. "

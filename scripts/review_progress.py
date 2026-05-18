@@ -68,8 +68,8 @@ def summarize_csv(path: Path) -> dict:
 def summarize_review_dir(
     review_dir: Path | str = DEFAULT_REVIEW_DIR,
     *,
-    required_cases: int = 100,
-    required_eval_questions: int = 100,
+    required_cases: int = 150,
+    required_eval_questions: int = 130,
 ) -> dict:
     target = Path(review_dir)
     cases = summarize_csv(target / "mechanical_cases_review.csv")

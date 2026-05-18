@@ -3,59 +3,211 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>A1 多模态设备检修知识检索与作业辅助系统</title>
+    <title>Tri-MRO：证据-结构-作业三链对齐可信检修平台</title>
     <script src="/static/vendor/vue.global.prod.js"></script>
     <script src="/static/vendor/lucide.js"></script>
     <script src="/static/config.js"></script>
-    <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="stylesheet" href="/static/styles.css?v=cad-label-stability-20260518-v1" />
   </head>
   <body>
     <div id="app" class="app-shell">
       <aside class="sidebar">
         <div class="brand">
-          <div class="brand-mark">A1</div>
+          <div class="brand-mark">T</div>
           <div>
-            <h1>设备检修智能助手</h1>
-            <p>电机 · 泵 · 轴承</p>
+            <h1>Tri-MRO 作业控制台</h1>
+            <p>证据可信 · 结构可信 · 安全可信</p>
           </div>
         </div>
 
-        <nav class="nav-tabs" aria-label="主导航">
-          <button v-for="tab in tabs" :key="tab.id" :class="{active: activeTab === tab.id}" @click="activeTab = tab.id">
-            <i :data-lucide="tab.icon"></i>
-            <span>{{ tab.label }}</span>
-          </button>
+        <nav class="nav-groups" aria-label="主导航">
+          <template v-for="group in navGroups" :key="group.id">
+            <button
+              class="nav-group-header"
+              :class="{ active: activeNavGroup === group.id, expanded: expandedNavGroup === group.id }"
+              @click="group.children.length ? toggleNavGroup(group.id) : switchTab(group.id)"
+            >
+              <i :data-lucide="group.icon"></i>
+              <span>{{ group.label }}</span>
+              <i v-if="group.children.length" data-lucide="chevron-down" class="nav-chevron"></i>
+            </button>
+            <div v-if="group.children.length && expandedNavGroup === group.id" class="nav-sub-items">
+              <button
+                v-for="child in group.children"
+                :key="child.id"
+                :class="{ active: activeTab === child.id }"
+                @click="switchTab(child.id)"
+              >
+                <span>{{ child.label }}</span>
+              </button>
+            </div>
+          </template>
         </nav>
 
-        <section class="provider-panel">
-          <div class="panel-title">模型供应商</div>
-          <div v-for="provider in providers" :key="provider.name" class="provider-row">
-            <span class="status-dot" :class="{ok: provider.key_present, active: provider.active}"></span>
-            <div>
-              <strong>{{ provider.name }}</strong>
-              <small>{{ provider.default_model }}</small>
-            </div>
-          </div>
-        </section>
+        <div class="nav-task-badge">
+          <small>当前任务</small>
+          <strong>{{ hasActiveMaintenanceResult ? sessionTaskLabel : '未开始' }}</strong>
+          <span>{{ sessionContextLabel }}</span>
+        </div>
       </aside>
 
       <main class="workspace">
-        <header class="topbar">
-          <div>
+        <header class="global-strip">
+          <div class="global-strip-title">
             <h2>{{ currentTitle }}</h2>
-            <span>{{ health.status === 'ok' ? '系统在线' : '检查服务状态' }} · {{ health.mode || 'local' }}</span>
           </div>
-          <button class="icon-button" @click="refreshAll" title="刷新">
-            <i data-lucide="refresh-cw"></i>
-          </button>
+          <div class="global-strip-context">
+            <span class="strip-tag"><i data-lucide="hash"></i>{{ hasActiveMaintenanceResult ? sessionTaskLabel : '未开始' }}</span>
+            <template v-if="hasActiveMaintenanceResult">
+              <span class="strip-tag"><i data-lucide="cpu"></i>{{ sessionEquipmentLabel }}</span>
+              <span class="strip-tag">{{ sessionModelLabel }}</span>
+              <span class="strip-gate" :class="incidentGateClass"><i data-lucide="shield-alert"></i>{{ incidentGateState }}</span>
+            </template>
+          </div>
+          <div class="global-strip-actions">
+            <a class="secondary-link" href="/marketing" target="_blank" rel="noopener">宣传主页</a>
+            <button class="icon-button" @click="refreshAll" title="刷新"><i data-lucide="refresh-cw"></i></button>
+          </div>
         </header>
 
-        <section v-if="activeTab === 'diagnosis'" class="diagnosis-grid">
+        <section v-if="hasActiveMaintenanceResult && (activeTab === 'overview' || activeTab === 'diagnosis')" class="workflow-state-strip" aria-label="当前检修任务状态">
+          <div class="workflow-identity">
+            <span>当前检修任务</span>
+            <strong>{{ sessionTaskLabel }}</strong>
+            <small>{{ sessionEquipmentLabel }} · {{ sessionModelLabel }}</small>
+          </div>
+          <div class="workflow-component">
+            <span>检修对象</span>
+            <strong>{{ sessionComponentCompact }}</strong>
+            <small>{{ workflowState.safety_gate?.label || '等待安全闸门' }}</small>
+          </div>
+          <div class="stage-timeline">
+            <div v-if="!workflowStages.length" class="stage-pill muted-stage">
+              <span>draft</span>
+              <strong>现场输入 → 证据链 → 结构链 → 作业链 → 安全闸门 → 案例沉淀</strong>
+            </div>
+            <div v-for="stage in workflowStages" :key="stage.id" class="stage-pill" :class="'stage-' + stage.status">
+              <span>{{ stage.status }}</span>
+              <strong>{{ stage.label }}</strong>
+            </div>
+          </div>
+          <div class="workflow-actions">
+            <button type="button" @click="goToSafetyWorkbench"><i data-lucide="shield-alert"></i><span>作业票与安全</span></button>
+            <button type="button" @click="goToSpatialWorkbench"><i data-lucide="cuboid"></i><span>进入 CAD 工位</span></button>
+            <button type="button" @click="prefillCaseFromCurrentSession"><i data-lucide="clipboard-plus"></i><span>从当前任务生成案例</span></button>
+          </div>
+        </section>
+
+        <section v-if="activeTab === 'overview'" class="overview-dashboard">
+          <div class="overview-stats-row">
+            <div class="stat-card stat-brand">
+              <div class="stat-card-icon"><i data-lucide="clipboard-list"></i></div>
+              <div><span>活跃任务</span><strong>{{ result ? 1 : 0 }}</strong></div>
+            </div>
+            <div class="stat-card stat-accent">
+              <div class="stat-card-icon"><i data-lucide="clock-3"></i></div>
+              <div><span>待审核案例</span><strong>{{ pendingCases.length }}</strong></div>
+            </div>
+            <div class="stat-card stat-danger">
+              <div class="stat-card-icon"><i data-lucide="shield-off"></i></div>
+              <div><span>安全阻断</span><strong>{{ incidentGateState === 'BLOCKED' ? 1 : 0 }}</strong></div>
+            </div>
+            <div class="stat-card stat-ok">
+              <div class="stat-card-icon"><i data-lucide="link-2"></i></div>
+              <div><span>可解释链路</span><strong>{{ graphEvidenceChains.length }}</strong></div>
+            </div>
+          </div>
+
+          <div class="overview-grid">
+            <div class="panel-card overview-queue">
+              <div class="panel-card-head">
+                <h3>检修作业流程</h3>
+                <span class="panel-kicker">流程总览</span>
+              </div>
+              <div class="overview-pipeline">
+                <button v-for="stage in overviewPipelineStages" :key="stage.id" class="overview-stage" :class="'stage-' + stage.status" @click="switchTab(stage.tab)">
+                  <span class="stage-icon"><i :data-lucide="stage.icon"></i></span>
+                  <div>
+                    <strong>{{ stage.label }}</strong>
+                    <small>{{ stage.detail }}</small>
+                  </div>
+                  <span class="stage-status">{{ stage.statusLabel }}</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="panel-card overview-risk">
+              <div class="panel-card-head">
+                <h3>风险概览</h3>
+                <span class="panel-kicker">风险汇总</span>
+              </div>
+              <div class="risk-summary-grid">
+                <div class="risk-item risk-high">
+                  <strong>{{ overviewRiskCounts.high }}</strong>
+                  <span>高风险</span>
+                </div>
+                <div class="risk-item risk-medium">
+                  <strong>{{ overviewRiskCounts.medium }}</strong>
+                  <span>中风险</span>
+                </div>
+                <div class="risk-item risk-low">
+                  <strong>{{ overviewRiskCounts.low }}</strong>
+                  <span>低风险</span>
+                </div>
+              </div>
+              <div class="overview-quick-metrics">
+                <div><span>前五召回</span><strong>{{ overviewQuickMetrics.recall }}</strong></div>
+                <div><span>三链覆盖</span><strong>{{ overviewQuickMetrics.alignment }}</strong></div>
+                <div><span>安全阻断率</span><strong>{{ overviewQuickMetrics.blocking }}</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="overview-actions-strip">
+            <button class="overview-action" @click="switchTab('diagnosis')">
+              <i data-lucide="stethoscope"></i>
+              <div><strong>检修判断卡</strong><span>证据驱动判断</span></div>
+              <em>{{ claimCards.length }}</em>
+            </button>
+            <button class="overview-action" @click="switchTab('safety')">
+              <i data-lucide="shield-alert"></i>
+              <div><strong>SOP 步骤</strong><span>标准化作业</span></div>
+              <em>{{ operationTicketSteps.length }}</em>
+            </button>
+            <button class="overview-action" @click="switchTab('spatial')">
+              <i data-lucide="cuboid"></i>
+              <div><strong>CAD 工位</strong><span>结构部件定位</span></div>
+              <em>{{ (activeSpatialGuidance?.highlighted_components || []).length }}</em>
+            </button>
+            <button class="overview-action" @click="switchTab('graph')">
+              <i data-lucide="network"></i>
+              <div><strong>证据链</strong><span>可解释路径</span></div>
+              <em>{{ graphEvidenceChains.length }}</em>
+            </button>
+            <button class="overview-action" @click="switchTab('cases')">
+              <i data-lucide="clipboard-check"></i>
+              <div><strong>知识沉淀</strong><span>案例与图谱</span></div>
+              <em>{{ pendingCases.length }}</em>
+            </button>
+            <button class="overview-action" @click="switchTab('metrics')">
+              <i data-lucide="bar-chart-3"></i>
+              <div><strong>评测证明</strong><span>创新指标</span></div>
+              <em>{{ innovationMetricsList.length }}</em>
+            </button>
+          </div>
+        </section>
+
+        <section v-if="activeTab === 'diagnosis' || activeTab === 'diagnosis_vision'" class="diagnosis-grid" :class="{ 'image-recognition-workbench': activeTab === 'diagnosis_vision' }">
+          <div class="sub-tab-bar full-span">
+            <button :class="{ active: activeTab === 'diagnosis' }" @click="switchTab('diagnosis')">检修任务台</button>
+            <button :class="{ active: activeTab === 'diagnosis_vision' }" @click="switchTab('diagnosis_vision')">图片识别详情</button>
+          </div>
           <form class="query-panel" @submit.prevent="runQuery">
             <div class="field-row">
               <label>
                 设备类型
-                <select v-model="query.equipment">
+                <select v-model="query.equipment" @change="changeDiagnosisEquipment">
+                  <option value="" disabled>请选择设备类型</option>
                   <option v-for="device in devices" :value="device.id">{{ device.label }}</option>
                 </select>
               </label>
@@ -77,16 +229,33 @@
             </label>
 
             <div class="upload-row">
-              <label class="file-picker">
+              <div
+                :class="['file-picker', 'native-upload', { uploading: uploadingImage }]"
+                @dragover.prevent
+                @drop.prevent="uploadImageDrop"
+              >
                 <i data-lucide="image-up"></i>
-                <span>{{ uploadedImage.filename || '上传故障图片' }}</span>
-                <input type="file" accept="image/*" @change="uploadImage" />
-              </label>
+                <div class="file-picker-copy">
+                  <strong>{{ uploadingImage ? '上传与视觉分析中...' : uploadedImage.filename || '上传故障图片' }}</strong>
+                  <span>{{ uploadingImage ? '正在分析图片证据' : '选择图片或拖入此处' }}</span>
+                </div>
+                <input id="diagnosis-image-input" class="native-file-input" type="file" accept="image/*" @change="uploadImage" :disabled="uploadingImage" />
+              </div>
               <div class="image-caption">
                 <strong>视觉描述</strong>
-                <span>{{ query.image_caption || '未上传图片时仅使用文本和型号检索' }}</span>
+                <span>{{ uploadingImage ? '正在等待视觉模型分析；如远程模型超时，系统会自动使用本地规则结果。' : query.image_caption || '未上传图片时仅使用文本和型号检索' }}</span>
+                <small v-if="uploadStatus" :class="['upload-status', { warning: uploadedImage.visual_analysis?.ok === false }]">{{ uploadStatus }}</small>
+                <div v-if="uploadedImage.visual_analysis" class="visual-analysis-mini">
+                  <small>视觉资产 #{{ uploadedImage.visual_asset_id }} · {{ uploadedImage.visual_analysis.provider }} / {{ uploadedImage.visual_analysis.model }}</small>
+                  <div class="chips compact">
+                    <span v-for="item in uploadedImage.visual_analysis.defect_labels">{{ item.label }}</span>
+                  </div>
+                  <small v-if="uploadedImage.visual_analysis.ocr_text">OCR：{{ uploadedImage.visual_analysis.ocr_text }}</small>
+                </div>
               </div>
             </div>
+
+            <div v-if="queryError" class="error-banner">{{ queryError }}</div>
 
             <button class="primary-button" type="submit" :disabled="loading">
               <i data-lucide="search"></i>
@@ -95,27 +264,172 @@
           </form>
 
           <section class="result-panel">
-            <div v-if="!result" class="empty-state">
+            <div v-if="loading" class="agent-progress-panel" aria-live="polite">
+              <div class="agent-progress-visual">
+                <div class="agent-orbit-ring">
+                  <span class="agent-orbit-dot dot-one"></span>
+                  <span class="agent-orbit-dot dot-two"></span>
+                  <span class="agent-orbit-dot dot-three"></span>
+                  <strong>{{ agentProgressPercent }}%</strong>
+                </div>
+                <div>
+                  <span>Tri-MRO 智能体接力</span>
+                  <h3>正在生成检修方案</h3>
+                  <p>{{ currentAgentProgressStep.detail }}</p>
+                </div>
+              </div>
+              <div class="agent-relay-line">
+                <div v-for="step in agentProgressSteps" :key="step.id" class="agent-relay-step" :class="'agent-step-' + step.state">
+                  <span></span>
+                  <div>
+                    <strong>{{ step.label }}</strong>
+                    <small>{{ step.detail }}</small>
+                  </div>
+                </div>
+              </div>
+              <div class="agent-progress-foot">
+                <span>云模型或视觉服务超时后自动回退到缓存、规则和本地检索。</span>
+                <em>{{ currentAgentProgressStep.label }}</em>
+              </div>
+            </div>
+
+            <div v-else-if="!result" class="empty-state">
               <i data-lucide="wrench"></i>
               <h3>等待输入检修问题</h3>
               <p>选择设备、输入故障描述，可同时上传图片参与跨模态检索。</p>
             </div>
 
-            <template v-else>
+            <template v-else-if="activeTab === 'diagnosis'">
               <div class="summary-strip">
-                <div>
+                <button type="button" class="metric-action-card" @click="openExplanation('confidence')">
                   <span>置信度</span>
                   <strong>{{ Math.round(result.confidence * 100) }}%</strong>
-                </div>
-                <div>
+                  <small>查看置信度来源</small>
+                </button>
+                <button type="button" class="metric-action-card" @click="openExplanation('risk')">
                   <span>风险等级</span>
                   <strong :class="'risk-' + result.risk_level">{{ riskLabel(result.risk_level) }}</strong>
-                </div>
-                <div>
+                  <small>查看风险判定依据</small>
+                </button>
+                <button type="button" class="metric-action-card" @click="switchTab('claim_detail')">
                   <span>人工复核</span>
                   <strong>{{ result.human_review_required ? '需要' : '可选' }}</strong>
-                </div>
+                  <small>进入人工复核工作台</small>
+                </button>
               </div>
+
+              <aside v-if="explanationPayload" class="explanation-drawer">
+                <div class="explanation-head">
+                  <div>
+                    <span>Trace View</span>
+                    <h3>{{ explanationPayload.title }}</h3>
+                  </div>
+                  <button type="button" class="icon-button" @click="closeExplanation" title="关闭解释"><i data-lucide="x"></i></button>
+                </div>
+                <p>{{ explanationPayload.summary }}</p>
+                <div v-if="explanationPayload.bars && explanationPayload.bars.length" class="explanation-bars">
+                  <div v-for="bar in explanationPayload.bars" class="explanation-bar-row">
+                    <span>{{ bar.label }}</span>
+                    <div><i :style="{ width: Math.min(100, Math.max(0, Number(bar.value) || 0)) + '%' }"></i></div>
+                    <strong>{{ bar.value }}</strong>
+                    <small>{{ bar.note }}</small>
+                  </div>
+                </div>
+                <ul>
+                  <li v-for="item in explanationPayload.items">{{ item }}</li>
+                </ul>
+              </aside>
+
+              <article v-if="primaryClaimCard" class="claim-card-final">
+                <header class="claim-card-head">
+                  <div>
+                    <span>检修判断卡</span>
+                    <h3>{{ primaryClaimCard.fault_claim }}</h3>
+                    <p>{{ claimDisplayId(primaryClaimCard.claim_id) }} · {{ claimDecisionLabel }}</p>
+                  </div>
+                  <strong :class="'confidence-' + primaryClaimCard.confidence_level">{{ statusDisplayLabel(primaryClaimCard.confidence_level) }}</strong>
+                </header>
+
+                <div class="claim-card-grid">
+                  <section class="claim-panel claim-panel-clickable" @click="openExplanation('evidence-budget')">
+                    <span>证据预算</span>
+                    <div class="claim-score">
+                      <strong>{{ claimEvidenceScorePercent }}%</strong>
+                      <div class="budget-bar"><span :style="{ width: claimEvidenceScorePercent + '%' }"></span></div>
+                    </div>
+                    <div v-for="row in evidenceBudgetRows" class="budget-row">
+                      <small>{{ row.label }}</small>
+                      <em>{{ row.count }} 条</em>
+                    </div>
+                    <p v-if="primaryClaimCard.evidence_budget.missing_evidence.length" class="missing-evidence">
+                      缺口：{{ primaryClaimCard.evidence_budget.missing_evidence.join('、') }}
+                    </p>
+                  </section>
+
+                  <section class="claim-panel claim-panel-clickable" @click="openExplanation('component-contract')">
+                    <span>部件约束</span>
+                    <strong>{{ componentSummaryLabel(primaryClaimCard.structure_chain.component_keys || []) }}</strong>
+                    <p>{{ primaryClaimCard.structure_chain.binding_precision_label || primaryClaimCard.structure_chain.binding_precision_level }} · {{ primaryClaimCard.structure_chain.manual_calibration_required ? '需人工校准' : '可作为结构辅助' }}</p>
+                    <small v-if="activeComponentContract">别名：{{ (activeComponentContract.aliases || []).slice(0, 4).join('、') }}</small>
+                    <small v-if="componentContractGateDisplayLabels.length">安全门：{{ componentContractGateDisplayLabels.join('、') }}</small>
+                  </section>
+
+                  <section class="claim-panel claim-panel-clickable" @click="openExplanation('fmea')">
+                    <span>FMEA 风险链</span>
+                    <div v-for="item in claimFmeaItems" class="fmea-row">
+                      <small>{{ item.label }}<em>{{ item.source }}</em></small>
+                      <strong>{{ item.value }}</strong>
+                    </div>
+                    <p>{{ primaryClaimCard.fmea_risk_chain.recommended_action }}</p>
+                  </section>
+
+                  <section class="claim-panel claim-panel-clickable" @click="openExplanation('safety-gate')">
+                    <span>安全闸门状态机</span>
+                    <strong>{{ primaryClaimCard.safety_gate.state }}</strong>
+                    <p>{{ primaryClaimCard.safety_gate.decision }}</p>
+                    <small v-if="primaryClaimCard.safety_gate.missing_items.length">阻断项：{{ primaryClaimCard.safety_gate.missing_items.join('、') }}</small>
+                    <small v-for="audit in claimSafetyAuditTrail">{{ audit.action }} · {{ audit.reason }}</small>
+                  </section>
+                </div>
+              </article>
+
+              <article v-if="triMroAlignment" class="tri-mro-card" :class="'tri-mro-' + triMroAlignment.alignment_status">
+                <header class="tri-mro-head">
+                  <div>
+                    <span>Tri-MRO 三链对齐引擎</span>
+                    <h3>{{ triMroAlignment.name }}</h3>
+                    <p>{{ triMroAlignment.claim.text }}</p>
+                  </div>
+                  <strong>{{ triMroStatusLabel }}</strong>
+                </header>
+                <div class="tri-mro-grid">
+                  <button type="button" class="tri-mro-link-card" @click="openExplanation('tri-evidence')">
+                    <span>证据链</span>
+                    <strong>{{ triMroAlignment.claim.traceability.evidence_count }} 条证据</strong>
+                    <p>{{ triMroEvidencePreview }}</p>
+                  </button>
+                  <button type="button" class="tri-mro-link-card" @click="openExplanation('tri-structure')">
+                    <span>结构链</span>
+                    <strong>{{ componentSummaryLabel(triMroAlignment.structure_chain.component_keys || []) }}</strong>
+                    <p>{{ triMroAlignment.structure_chain.binding_label || triMroAlignment.structure_chain.binding_level }} · {{ triMroAlignment.structure_chain.requires_manual_calibration ? '需人工校准' : '对象级绑定' }}</p>
+                  </button>
+                  <button type="button" class="tri-mro-link-card" @click="openExplanation('tri-operation')">
+                    <span>作业链</span>
+                    <strong>{{ triMroAlignment.claim.traceability.operation_step_count }} 步作业票</strong>
+                    <p>已绑定 {{ Math.round((triMroAlignment.metrics.operation_binding_rate || 0) * 100) }}% SOP 步骤；{{ triMroAlignment.knowledge_governance.case_status }} 状态可生成工单。</p>
+                  </button>
+                </div>
+                <div class="tri-mro-gate" :class="'gate-' + triMroAlignment.safety_gate.status">
+                  <i data-lucide="shield-check"></i>
+                  <div>
+                    <strong>安全闸门：{{ triMroAlignment.safety_gate.label }}</strong>
+                    <p>{{ triMroAlignment.safety_gate.decision || triMroAlignment.safety_gate.blocking_policy }}</p>
+                    <small v-if="triMroAlignment.safety_gate.missing_items && triMroAlignment.safety_gate.missing_items.length">
+                      未满足：{{ triMroAlignment.safety_gate.missing_items.join('、') }}
+                    </small>
+                  </div>
+                </div>
+              </article>
 
               <article class="diagnosis-card">
                 <h3>故障判断</h3>
@@ -145,27 +459,16 @@
                 </article>
               </div>
 
-              <article class="work-card">
-                <h3>模型复核意见</h3>
-                <p class="review-text">{{ result.model_review.text }}</p>
-                <small>供应商：{{ result.model_review.provider }} · {{ result.model_review.ok ? '已生成' : '本地兜底' }}</small>
-              </article>
-
-              <article class="work-card correction-card">
-                <h3>人工修正与标注</h3>
-                <label>修正后答案<textarea v-model="feedbackForm.corrected_answer" rows="7"></textarea></label>
-                <label>标注备注<input v-model="feedbackForm.notes" placeholder="如：步骤遗漏、风险等级偏低、引用不充分" /></label>
-                <button class="primary-button" type="button" @click="submitFeedback">
+              <article class="work-card review-handoff-card">
+                <h3>人工复核入口</h3>
+                <p>模型复核意见、人工修正和标注已收纳到人工复核工作台；复核提交后会写入反馈记录，并回到检修任务台重新作为修正依据。</p>
+                <button class="primary-button" type="button" @click="switchTab('claim_detail')">
                   <i data-lucide="file-check-2"></i>
-                  <span>记录修正</span>
+                  <span>打开人工复核工作台</span>
                 </button>
-                <small v-if="feedbackStatus">{{ feedbackStatus }}</small>
-                <div v-if="result.feedback_hints && result.feedback_hints.length" class="feedback-hints">
-                  <strong>相似人工修正</strong>
-                  <div v-for="item in result.feedback_hints" class="citation">
-                    <p>{{ item.corrected_answer }}</p>
-                    <small>{{ item.created_at }} · {{ item.notes || item.question }}</small>
-                  </div>
+                <div v-if="result.model_review" class="review-summary-note">
+                  <strong>模型意见摘要</strong>
+                  <span>{{ result.model_review.text }}</span>
                 </div>
               </article>
 
@@ -184,27 +487,101 @@
                 </article>
 
                 <article class="work-card">
-                  <h3>多 Agent 编排</h3>
-                  <div class="agent-flow">
-                    <div v-for="agent in result.agents" class="agent-card" :class="'agent-' + agent.status">
-                      <div class="agent-card-head">
-                        <strong>{{ agent.agent }}</strong>
-                        <span>{{ agent.status }}</span>
+                  <h3>图谱增强路径</h3>
+                  <div v-if="!result.graph_paths || result.graph_paths.length === 0" class="muted">暂无图谱路径</div>
+                  <div v-for="path in result.graph_paths" class="graph-path">
+                    <strong>{{ path.path.join(' → ') }}</strong>
+                    <p>{{ path.source_title }} · {{ Math.round((path.confidence || 0) * 100) }}%</p>
+                    <small>安全邻居：{{ (path.safety_neighbors || []).join('、') }}</small>
+                  </div>
+                  <div v-if="result.visual_evidence && result.visual_evidence.length" class="visual-evidence">
+                    <h4>视觉证据</h4>
+                    <div v-for="item in result.visual_evidence" class="citation">
+                      <strong>{{ item.title }}</strong>
+                      <p>{{ item.caption }}</p>
+                      <div v-if="item.defect_labels && item.defect_labels.length" class="chips compact">
+                        <span v-for="label in item.defect_labels">{{ label.label || label }}</span>
                       </div>
-                      <p>{{ agent.output || agent.message }}</p>
-                      <dl class="agent-meta">
-                        <dt>输入</dt>
-                        <dd>{{ agent.input }}</dd>
-                        <dt>证据</dt>
-                        <dd>
-                          手册 {{ agent.evidence && agent.evidence.manual_hits !== undefined ? agent.evidence.manual_hits : '-' }}
-                          · 案例 {{ agent.evidence && agent.evidence.case_hits !== undefined ? agent.evidence.case_hits : '-' }}
-                          · 置信 {{ Math.round((agent.confidence || 0) * 100) }}%
-                        </dd>
-                        <dt>下一步</dt>
-                        <dd>{{ agent.next_action }}</dd>
-                      </dl>
+                      <small v-if="item.ocr_text">OCR：{{ item.ocr_text }}</small>
+                      <small v-if="item.flowchart && item.flowchart.summary">流程图：{{ item.flowchart.summary }}</small>
+                      <small>{{ item.source }} <template v-if="item.page">P{{ item.page }}</template></small>
                     </div>
+                  </div>
+                  <div v-if="result.graph_status" class="resource-mini">
+                    <span>图数据库</span>
+                    <strong>{{ result.graph_backend }}</strong>
+                    <small>节点 {{ result.graph_status.node_count }} · 边 {{ result.graph_status.edge_count }}</small>
+                  </div>
+                  <div v-if="result.resource_verification_summary" class="resource-mini">
+                    <span>资源验证</span>
+                    <strong>{{ result.resource_verification_summary.summary.verified || 0 }}/{{ result.resource_verification_summary.summary.total || 0 }}</strong>
+                    <small>官方样例：{{ result.resource_verification_summary.official_sample_manual.status }}</small>
+                  </div>
+                </article>
+
+                <article class="work-card">
+                  <h3>多智能体编排</h3>
+                  <div class="agent-orchestration-table">
+                    <div class="agent-table-head">
+                      <span>智能体</span>
+                      <span>输出</span>
+                      <span>证据</span>
+                      <span>下一步</span>
+                    </div>
+                    <button v-for="agent in result.agents" type="button" class="agent-table-row" :class="'agent-' + agent.status" @click="openExplanation('confidence')">
+                      <strong>{{ agent.agent }}</strong>
+                      <p>{{ agent.output || agent.message }}</p>
+                      <span>
+                        手册 {{ agent.evidence && agent.evidence.manual_hits !== undefined ? agent.evidence.manual_hits : '-' }}
+                        / 案例 {{ agent.evidence && agent.evidence.case_hits !== undefined ? agent.evidence.case_hits : '-' }}
+                        / 置信 {{ Math.round((agent.confidence || 0) * 100) }}%
+                      </span>
+                      <em>{{ agent.next_action }}</em>
+                    </button>
+                  </div>
+                </article>
+              </div>
+            </template>
+
+            <template v-else>
+              <div class="vision-detail-layout">
+                <article class="vision-hero-card">
+                  <div>
+                    <span>VLM / OCR 识别结果</span>
+                    <h3>{{ uploadedImage.filename || visualEvidenceDetails[0]?.title || '等待上传故障图片' }}</h3>
+                    <p>{{ uploadedImage.visual_analysis?.caption || query.image_caption || visualEvidenceDetails[0]?.summary || '上传图片后会显示视觉模型描述、OCR 文本和缺陷标签。' }}</p>
+                  </div>
+                  <img v-if="query.visual_asset_id" :src="visualAssetImageUrl(query.visual_asset_id)" alt="当前故障图片" />
+                </article>
+
+                <div class="vision-intel-grid">
+                  <section>
+                    <span>VLM 结构化判断</span>
+                    <strong>{{ uploadedImage.visual_analysis?.provider || 'local visual parser' }}</strong>
+                    <p>{{ uploadedImage.visual_analysis?.caption || '未接入图片时，仅显示文本检索结果。' }}</p>
+                    <div class="chips compact">
+                      <span v-for="item in (uploadedImage.visual_analysis?.defect_labels || [])">{{ item.label || item }}</span>
+                    </div>
+                  </section>
+                  <section>
+                    <span>OCR / 现场文字</span>
+                    <strong>{{ uploadedImage.visual_analysis?.ocr_text ? '已识别' : '暂无 OCR' }}</strong>
+                    <p>{{ uploadedImage.visual_analysis?.ocr_text || '当前图片未提供可读铭牌或文字，按视觉缺陷标签和人工描述参与检索。' }}</p>
+                  </section>
+                </div>
+
+                <article class="work-card">
+                  <h3>视觉相关证据</h3>
+                  <div v-if="!visualEvidenceDetails.length" class="muted">暂无视觉证据，上传图片后会显示 VLM、OCR 和结构化资产。</div>
+                  <div class="visual-evidence-grid">
+                    <button v-for="item in visualEvidenceDetails" type="button" class="visual-evidence-card" @click="activeEvidenceGroup = 'visual'; switchTab('evidence')">
+                      <img v-if="item.image_url" :src="item.image_url" alt="视觉证据图片" />
+                      <div>
+                        <strong>{{ item.title }}</strong>
+                        <p>{{ item.summary }}</p>
+                        <small>{{ item.meta || item.source }}</small>
+                      </div>
+                    </button>
                   </div>
                 </article>
               </div>
@@ -212,9 +589,684 @@
           </section>
         </section>
 
-        <section v-if="activeTab === 'cases'" class="two-column">
-          <form class="work-card" @submit.prevent="submitCase">
-            <h3>一线案例上传</h3>
+        <section v-if="activeTab === 'claim_list' || activeTab === 'claim_detail'" class="claim-workbench">
+          <div class="page-header">
+            <div>
+              <h3>{{ activeTab === 'claim_list' ? '检修判断卡列表' : '人工复核工作台' }}</h3>
+              <p>证据驱动的检修判断卡，每张卡包含证据预算、FMEA 风险链和安全闸门状态；复核结果会反馈给检修任务台。</p>
+            </div>
+            <div class="page-header-actions">
+              <button type="button" class="secondary-button" @click="switchTab('claim_list')" :class="{ active: activeTab === 'claim_list' }">列表视图</button>
+              <button type="button" class="secondary-button" @click="switchTab('claim_detail')" :class="{ active: activeTab === 'claim_detail' }">详情复核</button>
+            </div>
+          </div>
+
+          <template v-if="activeTab === 'claim_list'">
+            <div class="claim-stat-strip">
+              <div class="stat-card stat-brand"><div><span>判断卡</span><strong>{{ claimCards.length }}</strong></div></div>
+              <div class="stat-card stat-ok"><div><span>证据预算</span><strong>{{ claimEvidenceScorePercent }}%</strong></div></div>
+              <div class="stat-card" :class="primaryClaimCard?.safety_gate?.state === 'BLOCKED' ? 'stat-danger' : 'stat-ok'"><div><span>安全闸门</span><strong>{{ primaryClaimCard?.safety_gate?.state ? gateStateDisplayLabel(primaryClaimCard.safety_gate.state) : '--' }}</strong></div></div>
+              <div class="stat-card stat-accent"><div><span>风险等级</span><strong>{{ result?.risk_level ? riskDisplayLabel(result.risk_level) : '--' }}</strong></div></div>
+            </div>
+            <div class="data-table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>判断卡编号</th>
+                    <th>故障判断</th>
+                    <th>置信度</th>
+                    <th>证据预算</th>
+                    <th>安全闸门</th>
+                    <th>决策</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-if="primaryClaimCard" @click="switchTab('claim_detail')" style="cursor:pointer">
+                    <td><strong>{{ claimDisplayId(primaryClaimCard.claim_id) }}</strong></td>
+                    <td>{{ primaryClaimCard.fault_claim }}</td>
+                    <td><span :class="'confidence-' + primaryClaimCard.confidence_level">{{ statusDisplayLabel(primaryClaimCard.confidence_level) }}</span></td>
+                    <td>{{ claimEvidenceScorePercent }}%</td>
+                    <td><span class="badge" :class="primaryClaimCard.safety_gate.state === 'BLOCKED' ? 'badge-blocked' : 'badge-ready'">{{ gateStateDisplayLabel(primaryClaimCard.safety_gate.state) }}</span></td>
+                    <td>{{ claimDecisionLabel }}</td>
+                  </tr>
+                  <tr v-if="!primaryClaimCard">
+                    <td colspan="6" class="muted" style="text-align:center;padding:24px">先在检修任务台生成检修方案，检修判断卡将自动生成。</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </template>
+
+          <template v-if="activeTab === 'claim_detail'">
+            <div v-if="!primaryClaimCard" class="empty-state">
+              <i data-lucide="file-badge-2"></i>
+              <h3>暂无检修判断卡</h3>
+              <p>先在检修任务台生成检修方案。</p>
+            </div>
+            <article v-if="primaryClaimCard" class="claim-card-final">
+              <header class="claim-card-head">
+                <div>
+                  <span>检修判断卡</span>
+                  <h3>{{ primaryClaimCard.fault_claim }}</h3>
+                  <p>{{ claimDisplayId(primaryClaimCard.claim_id) }} · {{ claimDecisionLabel }}</p>
+                </div>
+                <strong :class="'confidence-' + primaryClaimCard.confidence_level">{{ statusDisplayLabel(primaryClaimCard.confidence_level) }}</strong>
+              </header>
+              <div class="claim-card-grid">
+                <section class="claim-panel claim-panel-clickable" @click="openExplanation('evidence-budget')">
+                  <span>证据预算</span>
+                  <div class="claim-score">
+                    <strong>{{ claimEvidenceScorePercent }}%</strong>
+                    <div class="budget-bar"><span :style="{ width: claimEvidenceScorePercent + '%' }"></span></div>
+                  </div>
+                  <div v-for="row in evidenceBudgetRows" class="budget-row">
+                    <small>{{ row.label }}</small>
+                    <em>{{ row.count }} 条</em>
+                  </div>
+                  <p v-if="primaryClaimCard.evidence_budget.missing_evidence.length" class="missing-evidence">
+                    缺口：{{ primaryClaimCard.evidence_budget.missing_evidence.join('、') }}
+                  </p>
+                </section>
+                <section class="claim-panel claim-panel-clickable" @click="openExplanation('component-contract')">
+                  <span>部件约束</span>
+                  <strong>{{ componentSummaryLabel(primaryClaimCard.structure_chain.component_keys || []) }}</strong>
+                  <p>{{ primaryClaimCard.structure_chain.binding_precision_label || primaryClaimCard.structure_chain.binding_precision_level }}</p>
+                </section>
+                <section class="claim-panel claim-panel-clickable" @click="openExplanation('fmea')">
+                  <span>FMEA 风险链</span>
+                  <div v-for="item in claimFmeaItems" class="fmea-row">
+                    <small>{{ item.label }}<em>{{ item.source }}</em></small>
+                    <strong>{{ item.value }}</strong>
+                  </div>
+                  <p>{{ primaryClaimCard.fmea_risk_chain.recommended_action }}</p>
+                </section>
+                <section class="claim-panel claim-panel-clickable" @click="openExplanation('safety-gate')">
+                  <span>安全闸门状态机</span>
+                  <strong>{{ gateStateDisplayLabel(primaryClaimCard.safety_gate.state) }}</strong>
+                  <p>{{ primaryClaimCard.safety_gate.decision }}</p>
+                  <small v-if="primaryClaimCard.safety_gate.missing_items.length">阻断项：{{ primaryClaimCard.safety_gate.missing_items.join('、') }}</small>
+                </section>
+              </div>
+            </article>
+
+            <aside v-if="primaryClaimCard && explanationPayload" class="explanation-drawer">
+              <div class="explanation-head">
+                <div>
+                  <span>Trace View</span>
+                  <h3>{{ explanationPayload.title }}</h3>
+                </div>
+                <button type="button" class="icon-button" @click="closeExplanation" title="关闭解释"><i data-lucide="x"></i></button>
+              </div>
+              <p>{{ explanationPayload.summary }}</p>
+              <div v-if="explanationPayload.bars && explanationPayload.bars.length" class="explanation-bars">
+                <div v-for="bar in explanationPayload.bars" class="explanation-bar-row">
+                  <span>{{ bar.label }}</span>
+                  <div><i :style="{ width: Math.min(100, Math.max(0, Number(bar.value) || 0)) + '%' }"></i></div>
+                  <strong>{{ bar.value }}</strong>
+                  <small>{{ bar.note }}</small>
+                </div>
+              </div>
+              <ul>
+                <li v-for="item in explanationPayload.items">{{ item }}</li>
+              </ul>
+            </aside>
+
+            <div v-if="primaryClaimCard" class="claim-review-workbench">
+              <aside>
+                <button v-for="panel in claimReviewPanels" type="button" :class="{ active: activeClaimReviewPanel.key === panel.key }" @click="selectClaimReviewPanel(panel.key)">
+                  <span>{{ panel.label }}</span>
+                  <strong>{{ panel.status }}</strong>
+                </button>
+              </aside>
+              <section>
+                <div class="panel-heading">
+                  <span>复核详情</span>
+                  <h3>{{ activeClaimReviewPanel.label }}</h3>
+                  <p>{{ activeClaimReviewPanel.summary }}</p>
+                </div>
+                <div class="model-review-note" v-if="result?.model_review">
+                  <strong>模型复核意见</strong>
+                  <p>{{ result.model_review.text }}</p>
+                  <small>供应商：{{ result.model_review.provider }} · {{ result.model_review.ok ? '已生成' : '本地兜底' }}</small>
+                </div>
+                <ul class="review-evidence-list">
+                  <li v-for="item in activeClaimReviewPanel.items">{{ item }}</li>
+                </ul>
+                <label>复核意见<textarea v-model="feedbackForm.corrected_answer" rows="7"></textarea></label>
+                <label>复核备注<input v-model="feedbackForm.notes" placeholder="如：证据不足、风险等级偏高、需补现场照片" /></label>
+                <button class="primary-button" type="button" @click="applyHumanReviewFeedback">
+                  <i data-lucide="send"></i>
+                  <span>提交复核并反馈工作台</span>
+                </button>
+                <small v-if="feedbackStatus">{{ feedbackStatus }}</small>
+              </section>
+            </div>
+          </template>
+        </section>
+
+        <section v-if="activeTab === 'spatial' || activeTab === 'spatial_calibration' || activeTab === 'spatial_asset'" class="spatial-workbench pro-spatial-workbench">
+          <header class="spatial-command pro-spatial-command">
+            <div>
+              <h3>检修数字孪生工位</h3>
+              <p>授权结构模型驱动部件定位、剖视、作业步骤和安全闸门；照片重建只作为空间理解辅助。</p>
+            </div>
+            <div class="spatial-mode-badges">
+              <span class="badge-ready">本地授权三维模型</span>
+              <span class="badge-info">作业步骤部件绑定</span>
+              <span class="badge-warning">安全闸门优先</span>
+            </div>
+          </header>
+
+          <div class="sub-tab-bar" v-show="activeTab.startsWith('spatial')">
+            <button :class="{ active: activeTab === 'spatial' }" @click="switchTab('spatial')">结构主页</button>
+            <button :class="{ active: activeTab === 'spatial_calibration' }" @click="switchTab('spatial_calibration')">锚点校准</button>
+            <button :class="{ active: activeTab === 'spatial_asset' }" @click="switchTab('spatial_asset')">资产详情</button>
+          </div>
+
+          <div class="pro-spatial-grid" :class="{ 'spatial-focus-calibration': activeTab === 'spatial_calibration', 'spatial-focus-asset': activeTab === 'spatial_asset' }">
+            <aside class="pro-panel pro-input-panel" v-show="activeTab === 'spatial'">
+              <section>
+                <span class="panel-kicker">工位输入</span>
+                <h3>故障定位任务</h3>
+                <label>
+                  设备类型
+                  <select v-model="query.equipment" @change="changeSpatialEquipment">
+                    <option value="" disabled>请选择设备类型</option>
+                    <option value="bearing">轴承</option>
+                    <option value="pump">离心泵</option>
+                    <option value="motor">电机</option>
+                    <option value="engine">发动机</option>
+                  </select>
+                </label>
+                <label>
+                  设备型号
+                  <input v-model="query.model" placeholder="6201-2RS / ISG80-160 / Y2-160M" />
+                </label>
+                <label>
+                  故障描述
+                  <textarea v-model="query.text" rows="5" placeholder="例如：轴承运行异响，外圈滚道磨损并疑似剥落"></textarea>
+                </label>
+                <div
+                  :class="['file-picker', 'native-upload', 'spatial-file', { uploading: uploadingImage }]"
+                  @dragover.prevent
+                  @drop.prevent="uploadImageDrop"
+                >
+                  <i data-lucide="image-up"></i>
+                  <div class="file-picker-copy">
+                    <strong>{{ uploadingImage ? '上传与部件映射中...' : uploadedImage.filename || '上传照片并映射到标准部件' }}</strong>
+                    <span>{{ uploadingImage ? '正在生成视觉证据' : '选择图片或拖入此处' }}</span>
+                  </div>
+                  <input id="spatial-image-input" class="native-file-input" type="file" accept="image/*" @change="uploadImage" :disabled="uploadingImage" />
+                </div>
+                <button class="primary-button" type="button" @click="runSpatialGuidance">
+                  <i data-lucide="scan-search"></i>
+                  <span>生成 3D 检修导引</span>
+                </button>
+              </section>
+
+              <section class="asset-proof">
+                <span class="panel-kicker">资产可信度</span>
+                <div>
+                  <strong>{{ statusDisplayLabel(activeSpatialGuidance.viewer_mode || selectedSpatialModel.viewer_mode || 'procedural_fallback') }}</strong>
+                  <span>显示模式</span>
+                </div>
+                <div>
+                  <strong>{{ activeSpatialGuidance.license?.id || selectedSpatialModel.license?.id || '待确认' }}</strong>
+                  <span>许可证</span>
+                </div>
+                <div>
+                  <strong>{{ statusDisplayLabel(activeSpatialGuidance.asset_status || selectedSpatialModel.asset_status || '未加载') }}</strong>
+                  <span>授权/验证状态</span>
+                </div>
+              </section>
+
+              <section>
+                <span class="panel-kicker">实验性重建</span>
+                <button type="button" @click="startOnePhotoReconstruction" :disabled="!query.visual_asset_id">
+                  <i data-lucide="scan-line"></i>
+                  <span>单张照片定位包</span>
+                </button>
+                <label class="file-picker spatial-file">
+                  <i data-lucide="images"></i>
+                  <span>{{ multiPhotoFiles.length ? multiPhotoFiles.length + ' 张照片已选择' : '选择多照片重建素材' }}</span>
+                  <input type="file" accept="image/*" multiple @change="selectMultiPhotoFiles" />
+                </label>
+                <button type="button" @click="startMultiPhotoReconstruction" :disabled="!multiPhotoFiles.length">
+                  <i data-lucide="box-select"></i>
+                  <span>生成离线重建任务包</span>
+                </button>
+                <small class="muted">重建结果不参与尺寸测量和安全放行。</small>
+                <div class="photo3d-status">
+                  <strong>照片生成三维模型当前状态</strong>
+                  <span>单张照片：照片语义 → 标准模型部件定位，不生成新网格模型</span>
+                  <span>多照片：质量门 → 离线三维重建任务包</span>
+                  <span>安全策略：未验收结果不参与尺寸测量和安全放行</span>
+                </div>
+              </section>
+            </aside>
+
+            <section class="pro-stage">
+              <div class="pro-stage-header" v-show="activeTab !== 'spatial_asset'">
+                <div>
+                  <span>当前模型</span>
+                  <strong>{{ spatialModelSource === 'generated' && generatedCadModel ? generatedCadModel.title : (activeSpatialGuidance.model_title || selectedSpatialModel.title || '等待选择模型') }}</strong>
+                  <small v-if="spatialModelSource === 'generated' && generatedCadModel">{{ generatedCadModel.observation_caption }}</small>
+                  <small v-else>{{ activeSpatialGuidance.source_url || selectedSpatialModel.source_url || '本地程序化预览' }}</small>
+                </div>
+                <div class="spatial-source-toggle">
+                  <button type="button" :class="{ active: spatialModelSource === 'local' }" @click="switchSpatialModelSource('local')">
+                    <i data-lucide="hard-drive"></i><span>本地模型</span>
+                  </button>
+                  <button type="button" :class="{ active: spatialModelSource === 'generated' }" @click="switchSpatialModelSource('generated')">
+                    <i data-lucide="camera"></i><span>照片生成</span>
+                    <em v-if="currentPhotoCandidateCad" class="gen-badge">#{{ currentPhotoCandidateCad.id }}</em>
+                    <em v-else-if="photoCadViewState.status === 'generating'" class="gen-badge">生成中</em>
+                    <em v-else-if="query.visual_asset_id" class="gen-badge muted-badge">待生成</em>
+                  </button>
+                </div>
+                <div class="gate-card" :class="'gate-' + spatialGateStatus">
+                  <span>安全闸门</span>
+                  <strong>{{ spatialGateLabel }}</strong>
+                </div>
+              </div>
+              <div class="spatial-gen-defect-strip" v-if="spatialModelSource === 'generated' && generatedCadModel" v-show="activeTab !== 'spatial_asset'">
+                <div class="gen-defect-header">
+                  <i data-lucide="alert-triangle"></i>
+                  <strong>照片识别缺陷标注</strong>
+                  <span class="gen-exp-badge">实验性</span>
+                  <small class="gen-defect-source">候选 #{{ generatedCadForEquipment.id }} · {{ generatedCadModel.observation_caption || generatedCadModel.equipment }}</small>
+                </div>
+                <div class="gen-defect-items" v-if="generatedCadModel.defect_labels.length">
+                  <div v-for="d in generatedCadModel.defect_labels" class="gen-defect-item">
+                    <span class="gen-defect-label">{{ d.label }}</span>
+                    <span class="gen-defect-conf">{{ Math.round((d.confidence || 0) * 100) }}%</span>
+                  </div>
+                </div>
+                <span v-else class="gen-defect-empty">VLM 未检测到显著缺陷</span>
+              </div>
+              <div
+                v-if="spatialModelSource === 'generated'"
+                v-show="activeTab !== 'spatial_asset'"
+                class="photo-cad-workbench"
+                :class="'state-' + photoCadViewState.status"
+              >
+                <header class="photo-cad-head">
+                  <div>
+                    <span class="panel-kicker">照片生成 CAD</span>
+                    <h3>{{ photoCadViewState.title }}</h3>
+                    <p>{{ photoCadViewState.message }}</p>
+                  </div>
+                  <button
+                    type="button"
+                    @click="generateCadFromCurrentPhoto"
+                    :disabled="uploadingImage || photoCadViewState.status === 'generating'"
+                  >
+                    <i data-lucide="refresh-cw"></i>
+                    <span>{{ currentPhotoCandidateCad ? '重新检查' : '立即生成' }}</span>
+                  </button>
+                </header>
+
+                <div v-if="photoCadViewState.status !== 'ready'" class="photo-cad-placeholder">
+                  <i data-lucide="camera"></i>
+                  <strong>{{ photoCadViewState.title }}</strong>
+                  <span>{{ photoCadViewState.message }}</span>
+                </div>
+
+                <div v-else class="photo-cad-result">
+                  <div class="photo-cad-preview-grid">
+                    <figure
+                      v-for="view in candidateCadViewerViews"
+                      role="button"
+                      tabindex="0"
+                      @click="openCandidateCadViewer(currentPhotoCandidateCad || generatedCadForEquipment, view)"
+                      @keydown.enter="openCandidateCadViewer(currentPhotoCandidateCad || generatedCadForEquipment, view)"
+                    >
+                      <img :src="candidateCadRenderUrl(currentPhotoCandidateCad || generatedCadForEquipment, view)" :alt="'照片生成 CAD ' + view + ' 视图'" />
+                      <figcaption>{{ view.toUpperCase() }}</figcaption>
+                    </figure>
+                  </div>
+                  <aside class="photo-cad-side">
+                    <div>
+                      <span>候选资产</span>
+                      <strong>#{{ (currentPhotoCandidateCad || generatedCadForEquipment).id }} · {{ candidateCadStatusLabel((currentPhotoCandidateCad || generatedCadForEquipment).status) }}</strong>
+                      <small>{{ candidateCadCompareLabel(currentPhotoCandidateCad || generatedCadForEquipment) }}</small>
+                    </div>
+                    <div>
+                      <span>视觉来源</span>
+                      <strong>{{ (currentPhotoCandidateCad || generatedCadForEquipment).observation?.filename || uploadedImage.filename || '当前上传照片' }}</strong>
+                      <small>{{ (currentPhotoCandidateCad || generatedCadForEquipment).observation?.caption || query.image_caption }}</small>
+                    </div>
+                    <div class="photo-cad-link-row">
+                      <a v-for="link in photoCadResultLinks" :href="candidateCadFileUrl(currentPhotoCandidateCad || generatedCadForEquipment, link.role)" target="_blank" rel="noopener">{{ link.label }}</a>
+                    </div>
+                    <small class="photo-cad-risk">单图生成结果仅用于结构理解和人工审核，不用于尺寸测量、制造加工或安全放行。</small>
+                  </aside>
+                </div>
+              </div>
+              <div ref="spatialCanvas" class="spatial-canvas pro-spatial-canvas" v-show="activeTab !== 'spatial_asset' && (spatialModelSource !== 'generated' || generatedCadModel)"></div>
+              <div class="pro-viewer-toolbar" v-show="activeTab !== 'spatial_asset' && (spatialModelSource !== 'generated' || generatedCadModel)">
+                <button type="button" @click="resetSpatialView"><i data-lucide="rotate-3d"></i><span>复位视角</span></button>
+                <button type="button" @click="toggleSpatialSection" :class="{ active: spatialSection }"><i data-lucide="panel-top-open"></i><span>剖视平面</span></button>
+                <button type="button" @click="runQuery"><i data-lucide="file-search"></i><span>同步问诊方案</span></button>
+                <button type="button" @click="generateCadFromCurrentPhoto" :disabled="uploadingImage || photoCadViewState.status === 'generating'" v-show="spatialModelSource !== 'generated' || !generatedCadModel"><i data-lucide="camera"></i><span>从照片生成 CAD</span></button>
+              </div>
+              <div class="calibration-toolbar" v-show="activeTab === 'spatial_calibration'">
+                <div>
+                  <strong>部件校准模式</strong>
+                  <span>系统会先显示模型辅助标注；选择部件后点击模型表面，可用人工三维锚点覆盖预标。</span>
+                </div>
+                <select v-model="spatialCalibrationComponentKey" @change="applySpatialCalibrationMode">
+                  <option v-for="item in spatialCalibrationComponents" :key="item.component_key" :value="item.component_key">
+                    {{ componentDisplayName(item.component_key) }}
+                  </option>
+                </select>
+                <button type="button" :class="{ active: spatialCalibrationMode }" @click="toggleSpatialCalibration">
+                  <i data-lucide="crosshair"></i>
+                  <span>{{ spatialCalibrationMode ? '正在校准：点击模型' : '开启校准' }}</span>
+                </button>
+              </div>
+              <div class="calibration-focus-panel" v-show="activeTab === 'spatial_calibration'">
+                <strong>当前校准对象：{{ componentDisplayName(spatialCalibrationComponentKey) }}</strong>
+                <span>点击三维模型表面后，会覆盖系统预标锚点；这里只保留校准对象、置信度和安全限制，避免与结构主页重复。</span>
+              </div>
+              <div class="pro-step-timeline" v-show="activeTab === 'spatial'">
+                <button
+                  v-for="item in spatialStepGroups"
+                  type="button"
+                  :class="{ active: focusedSpatialComponentKey === item.component_key }"
+                  :title="item.risk_label"
+                  @click="focusSpatialComponent(item.component_key)"
+                >
+                  <span>{{ item.step_label }}</span>
+                  <strong>{{ item.label }}</strong>
+                  <em>{{ item.step_count }} 步 · {{ item.phase_label }}</em>
+                </button>
+              </div>
+
+              <div class="cad-bridge-panel" v-show="activeTab === 'spatial_asset' || activeTab === 'spatial'">
+                <div class="cad-bridge-title">
+                  <div>
+                    <span class="panel-kicker">工程来源追溯</span>
+                    <h3>结构模型双证据</h3>
+                  </div>
+                  <strong>{{ statusDisplayLabel(cadBridge().viewer_mode || selectedSpatialModel.viewer_mode || 'local_glb') }}</strong>
+                </div>
+
+                <div class="cad-bridge-files">
+                  <div>
+                    <span>结构原件</span>
+                    <strong>{{ bridgeFileName(cadBridge().cad_source.path) }}</strong>
+                    <small>{{ statusDisplayLabel(cadBridge().cad_source.format || 'unknown') }} · {{ cadBridge().cad_source.exists ? '已保存' : '缺失' }}</small>
+                    <small>校验码 {{ bridgeHash(cadBridge().cad_source.sha256) }}</small>
+                    <a v-if="cadBridge().cad_source.preview_url" :href="cadBridge().cad_source.preview_url" target="_blank" rel="noopener">打开结构原件</a>
+                  </div>
+                  <div>
+                    <span>网页三维模型</span>
+                    <strong>{{ bridgeFileName(cadBridge().glb_viewer.path) }}</strong>
+                    <small>{{ statusDisplayLabel(cadBridge().glb_viewer.format || 'local_glb') }} · {{ cadBridge().glb_viewer.exists ? '可渲染' : '缺失' }}</small>
+                    <small>校验码 {{ bridgeHash(cadBridge().glb_viewer.sha256) }}</small>
+                    <a v-if="cadBridge().glb_viewer.preview_url" :href="cadBridge().glb_viewer.preview_url" target="_blank" rel="noopener">打开三维模型</a>
+                  </div>
+                  <div>
+                    <span>辅助标注</span>
+                    <strong>{{ bridgeFileName(cadBridge().sidecar.path) }}</strong>
+                    <small>{{ statusDisplayLabel(cadBridge().sidecar.binding_mode || 'semantic_hotspot_overlay') }}</small>
+                    <small>{{ cadBridge().sidecar.component_count || 0 }} 个部件语义</small>
+                    <a v-if="cadBridge().sidecar.preview_url" :href="cadBridge().sidecar.preview_url" target="_blank" rel="noopener">打开辅助标注</a>
+                  </div>
+                  <div>
+                    <span>转换报告</span>
+                    <strong>{{ bridgeFileName(cadBridge().conversion.path) }}</strong>
+                    <small>{{ cadBridge().conversion.exists ? '已生成' : '缺失' }} · {{ statusDisplayLabel(cadBridge().conversion.toolchain?.cad_import || '工具链待记录') }}</small>
+                    <small>校验码 {{ bridgeHash(cadBridge().conversion.sha256) }}</small>
+                    <a v-if="cadBridge().conversion.preview_url" :href="cadBridge().conversion.preview_url" target="_blank" rel="noopener">打开报告</a>
+                  </div>
+                </div>
+
+                <div class="cad-bridge-chain">
+                  <div v-for="item in cadBridge().trace_chain" class="cad-chain-step" :class="'status-' + item.status">
+                  <span>{{ bridgeTraceLabel(item.label) }}</span>
+                  <strong>{{ bridgeStatusLabel(item.status) }}</strong>
+                  <small>{{ bridgeTraceExplanation(item.explanation) }}</small>
+                  </div>
+                </div>
+
+                <div class="cad-binding-table">
+                  <div class="cad-binding-head">
+                    <strong>部件绑定</strong>
+                    <span>结构模型节点 → 部件标识 → 作业步骤</span>
+                  </div>
+                  <div v-for="item in bridgeComponentBindings()" class="cad-binding-row" :class="{ active: focusedSpatialComponentKey === item.component_key }">
+                    <span>{{ item.label }}</span>
+                    <strong>{{ componentDisplayName(item.component_key) }}</strong>
+                    <small>{{ item.cad_node_label || cadNodeDisplayName(item.cad_node || item.component_key) }}</small>
+                    <em>{{ item.sop_step_count || 0 }} 步</em>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <aside class="pro-panel pro-evidence-panel" v-show="activeTab === 'spatial'">
+              <section v-if="activeComponentContract" class="component-contract-card">
+                <span class="panel-kicker">部件约束</span>
+                <h3>{{ componentDisplayName(activeComponentContract.component_key) }}</h3>
+                <p>{{ activeComponentContract.cad_binding.precision_label }} · {{ activeComponentContract.cad_binding.manual_calibration_required ? '语义热点 / 需人工校准' : '对象级绑定' }}</p>
+                <div class="contract-tags">
+                  <span v-for="fault in activeComponentContract.common_faults">{{ fault }}</span>
+                </div>
+                <small>视觉线索：{{ (activeComponentContract.visual_clues || []).join('、') }}</small>
+                <small>安全门：{{ componentContractGateDisplayLabels.join('、') }}</small>
+              </section>
+
+              <section>
+                <span class="panel-kicker">部件证据</span>
+                <h3>3D 高亮结果</h3>
+                <div v-if="!activeSpatialGuidance.highlighted_components.length" class="muted">暂无高亮部件</div>
+                <button
+                  v-for="item in activeSpatialGuidance.highlighted_components"
+                  type="button"
+                  class="spatial-component-card pro-component-card"
+                  :class="['tone-' + item.tone, { active: focusedSpatialComponentKey === item.component_key }]"
+                  @click="focusSpatialComponent(item.component_key)"
+                >
+                  <strong>{{ item.label }}</strong>
+                  <span>{{ Math.round((item.confidence || 0) * 100) }}%</span>
+                  <p>{{ item.reason }}</p>
+                  <small>安全项：{{ (item.safety_tags || []).join(' / ') }}</small>
+                </button>
+              </section>
+
+              <section>
+                <span class="panel-kicker">作业步骤</span>
+                <h3>SOP 空间绑定</h3>
+                <div v-if="!activeSpatialGuidance.sop_bindings.length" class="muted">先生成检修方案或 3D 导引。</div>
+                <ol class="spatial-sop-list pro-sop-list">
+                  <li v-for="item in activeSpatialGuidance.sop_bindings" @click="focusSpatialComponent(item.component_key)">
+                    <span>#{{ item.step_index }}</span>
+                    <p>{{ item.step }}</p>
+                    <small>{{ item.phase || '作业步骤' }} · {{ item.risk_control || '按证据执行' }} · {{ spatialComponentLabel(item.component_key) }}</small>
+                  </li>
+                </ol>
+              </section>
+
+              <section>
+                <span class="panel-kicker">安全闭环</span>
+                <h3>闸门检查</h3>
+                <div class="safety-decision" :class="'gate-' + spatialGateStatus">
+                  {{ activeSafetyDecision() }}
+                </div>
+                <div class="spatial-safety-grid">
+                  <span
+                    v-for="check in activeSafetyChecks()"
+                    class="check-pill"
+                    :class="{ pass: check.passed, block: !check.passed }"
+                    :title="check.evidence"
+                  >
+                    {{ check.label }}
+                  </span>
+                </div>
+              </section>
+
+              <section>
+                <span class="panel-kicker">成熟度说明</span>
+                <div class="maturity-card">
+                  <strong>{{ activeSpatialMaturity().label }}</strong>
+                  <span>{{ statusDisplayLabel(activeSpatialMaturity().level) }} · {{ statusDisplayLabel(activeSpatialMaturity().binding_mode) }}</span>
+                  <small>{{ activeSpatialMaturity().object_level_binding ? '对象级绑定已完成' : '当前为语义热点绑定，未声称 CAD 面级测量' }}</small>
+                </div>
+                <ul v-if="spatialProfessionalGaps().length" class="gap-list">
+                  <li v-for="gap in spatialProfessionalGaps()">{{ gap }}</li>
+                </ul>
+              </section>
+
+              <section>
+                <span class="panel-kicker">证据链</span>
+                <div class="route-row">
+                  <strong>结构模型来源</strong>
+                  <span>{{ activeSpatialGuidance.source_cad_path || selectedSpatialModel.source_cad_path || '外嵌或程序化预览' }}</span>
+                  <small>{{ activeSpatialGuidance.sidecar_path || selectedSpatialModel.sidecar_path || '暂无辅助标注' }}</small>
+                </div>
+                <div v-for="job in reconstructionJobs" class="route-row">
+                  <strong>#{{ job.id }} {{ job.mode }}</strong>
+                  <span>{{ job.status }} · {{ job.provider }}</span>
+                  <small>{{ job.limitations }}</small>
+                  <small v-if="job.log?.algorithm_status">算法状态：{{ job.log.algorithm_status }}</small>
+                  <small v-if="job.log?.next_command">离线命令：{{ job.log.next_command }}</small>
+                </div>
+              </section>
+            </aside>
+          </div>
+        </section>
+
+        <section v-if="activeTab === 'safety' || activeTab === 'safety_list'" class="safety-workbench">
+          <div class="sub-tab-bar">
+            <button :class="{ active: activeTab === 'safety_list' }" @click="switchTab('safety_list')">作业票列表</button>
+            <button :class="{ active: activeTab === 'safety' }" @click="switchTab('safety')">安全执行</button>
+          </div>
+          <header class="safety-hero" :class="incidentGateClass">
+            <div>
+              <span>安全闸门状态机</span>
+              <h3>{{ gateStateDisplayLabel(incidentGateState) }}：{{ safetyGateDecisionText }}</h3>
+              <p>作业票不是“建议清单”，而是带前置条件、阻断原因、审计留痕和验收标准的检修控制单。</p>
+            </div>
+            <div class="safety-hero-status">
+              <strong>{{ gateStateDisplayLabel(incidentGateState) }}</strong>
+              <small>{{ safetyGateResolved ? '全部前置条件已确认' : '等待现场确认' }}</small>
+            </div>
+          </header>
+
+          <div class="safety-layout" :class="{ 'safety-list-only': activeTab === 'safety_list' }">
+            <section v-if="activeTab === 'safety_list'" class="work-order-list-view">
+              <div class="safety-list-header">
+                <div class="panel-heading">
+                  <span>作业票队列</span>
+                  <h3>作业票总览：{{ sessionEquipmentLabel }} {{ sessionComponentCompact }}</h3>
+                  <p>先看作业票全貌、风险分布和阻断步骤，再进入现场执行闸门。</p>
+                </div>
+                <button class="primary-button" type="button" @click="switchTab('safety')">
+                  <i data-lucide="shield-alert"></i>
+                  <span>进入安全执行</span>
+                </button>
+              </div>
+
+              <div class="safety-summary-grid">
+                <div v-for="card in safetyListSummaryCards" :key="card.label" class="safety-summary-card" :class="card.tone">
+                  <span>{{ card.label }}</span>
+                  <strong>{{ card.value }}</strong>
+                  <small>{{ card.note }}</small>
+                </div>
+              </div>
+
+              <div class="work-order-board">
+                <article v-for="step in operationTicketSteps" :key="step.id" class="work-order-row" :class="['risk-' + step.risk, step.state.toLowerCase()]">
+                  <div class="step-index">#{{ step.index }}</div>
+                  <div class="work-order-row-main">
+                    <strong>{{ step.text }}</strong>
+                    <span>{{ step.component }} · {{ riskDisplayLabel(step.risk) }}</span>
+                  </div>
+                  <div class="work-order-row-state">
+                    <em>{{ gateStateDisplayLabel(step.state) }}</em>
+                    <button type="button" @click="switchTab('safety')">执行</button>
+                  </div>
+                </article>
+              </div>
+            </section>
+
+            <section v-if="activeTab === 'safety'" class="safety-execution-view">
+              <div class="panel-heading">
+                <span>执行作业票</span>
+                <h3>现场执行作业票</h3>
+                <p>执行视图只保留当前作业步骤和闸门动作，便于现场逐项确认。</p>
+              </div>
+              <ol class="work-order-timeline execution-timeline">
+                <li v-for="step in operationTicketSteps" :key="step.id" :class="'risk-' + step.risk">
+                  <div class="step-index">#{{ step.index }}</div>
+                  <div>
+                    <strong>{{ step.text }}</strong>
+                    <span>{{ step.component }} · {{ riskDisplayLabel(step.risk) }} · {{ gateStateDisplayLabel(step.state) }}</span>
+                  </div>
+                </li>
+              </ol>
+            </section>
+
+            <aside class="safety-gate-panel" :class="incidentGateClass" v-if="activeTab === 'safety'">
+              <div class="panel-heading">
+                <span>阻断控制</span>
+                <h3>现场执行闸门</h3>
+                <p>未满足条件时，系统不放行高风险拆卸步骤。</p>
+              </div>
+              <div class="gate-checklist">
+                <div v-for="item in safetyGateChecklist" :class="{confirmed: item.confirmed, missing: item.missing}">
+                  <i :data-lucide="item.confirmed ? 'check-circle-2' : 'octagon-alert'"></i>
+                  <span>{{ item.display_label || item.label }}</span>
+                  <button type="button" @click="confirmSafetyGate(item.key)" :disabled="item.confirmed">确认</button>
+                </div>
+              </div>
+              <button class="secondary-button" type="button" @click="resetSafetyGateConfirmations">重置安全确认</button>
+            </aside>
+
+            <section class="safety-evidence-panel" v-if="activeTab === 'safety'">
+              <div class="panel-heading">
+                <span>审计留痕</span>
+                <h3>阻断与放行留痕</h3>
+              </div>
+              <div class="audit-list">
+                <div v-for="item in safetyAuditRows">
+                  <strong>{{ item.time }} · {{ item.action }}</strong>
+                  <span>{{ item.reason }}</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="safety-evidence-panel" v-if="activeTab === 'safety'">
+              <div class="panel-heading">
+                <span>验收标准</span>
+                <h3>工具备件与验收标准</h3>
+              </div>
+              <div class="chips">
+                <span v-for="item in workOrderTools">{{ item }}</span>
+              </div>
+              <ul class="acceptance-list">
+                <li v-for="item in acceptanceCriteria">{{ item }}</li>
+              </ul>
+            </section>
+          </div>
+        </section>
+
+        <section v-if="activeTab === 'cases' || activeTab === 'cases_review' || activeTab === 'cases_write'" class="two-column">
+          <div class="sub-tab-bar full-span">
+            <button :class="{ active: activeTab === 'cases' }" @click="switchTab('cases')">案例草稿与上传</button>
+            <button :class="{ active: activeTab === 'cases_review' }" @click="switchTab('cases_review')">案例审核看板</button>
+            <button :class="{ active: activeTab === 'cases_write' }" @click="switchTab('cases_write')">知识写入/回滚</button>
+          </div>
+          <form class="work-card" v-show="activeTab === 'cases'" @submit.prevent="submitCase">
+            <div class="card-title-row">
+              <h3>一线案例上传</h3>
+              <div class="case-title-actions">
+                <button type="button" class="secondary-button" @click="returnToDiagnosisResult">返回诊断结果</button>
+                <button type="button" class="secondary-button" @click="prefillCaseFromCurrentSession">从当前任务生成案例</button>
+              </div>
+            </div>
             <label>标题<input v-model="caseForm.title" /></label>
             <label>设备型号<input v-model="caseForm.model" /></label>
             <label>故障现象<textarea v-model="caseForm.symptoms" rows="3"></textarea></label>
@@ -223,17 +1275,38 @@
             <button class="primary-button"><i data-lucide="send"></i><span>提交待审核</span></button>
           </form>
 
-          <div class="work-card">
+          <div class="work-card knowledge-pipeline-panel" :class="{ 'full-span': activeTab === 'cases_write' }" v-show="activeTab === 'cases_write' || activeTab === 'cases'">
+            <h3>知识写入流水线</h3>
+            <p class="muted">审核通过后，案例才会写入案例库、知识图谱和检索索引；驳回样例不会污染知识库。</p>
+            <div v-if="!knowledgeWritePipeline" class="muted">暂无本轮知识写入记录。审核一个待处理案例后会显示影响范围、回滚号和回归评测结果。</div>
+            <template v-else>
+              <div class="pipeline-summary">
+                <strong>{{ statusDisplayLabel(knowledgeWritePipeline.status) }}</strong>
+                <span>{{ knowledgeWritePipeline.rollback_id }}</span>
+              </div>
+              <div class="pipeline-steps">
+                <span v-for="step in knowledgeWritePipeline.pipeline" :class="'status-' + step.status">{{ step.label }}</span>
+              </div>
+              <div class="pipeline-impact">
+                <small>影响部件：{{ (knowledgeWritePipeline.affected_components || []).join('、') }}</small>
+                <small>图谱：{{ knowledgeWritePipeline.kg_update.updated ? '已更新' : '未更新' }} · 索引：{{ knowledgeWritePipeline.index_update.updated ? '已更新' : '未更新' }}</small>
+                <small>召回提升：{{ Math.round((knowledgeWritePipeline.regression_test.recall_gain || 0) * 100) }}% · 安全回归：{{ knowledgeWritePipeline.regression_test.safety_regression_passed ? '通过' : '需复核' }}</small>
+              </div>
+            </template>
+          </div>
+
+          <div class="work-card" :class="{ 'full-span': activeTab === 'cases_review' }" v-show="activeTab === 'cases_review' || activeTab === 'cases'">
             <h3>待审核案例</h3>
             <div v-if="pendingCases.length === 0" class="muted">暂无待审核案例</div>
             <div v-for="item in pendingCases" class="case-row">
               <strong>{{ item.title }}</strong>
               <p>{{ item.symptoms }}</p>
+              <small>工单状态：{{ item.work_order_status || 'pending_review' }}</small>
               <button @click="approveCase(item.id)">审核入库</button>
             </div>
           </div>
 
-          <div class="work-card full-span">
+          <div class="work-card full-span" v-show="activeTab === 'cases_review' || activeTab === 'cases'">
             <h3>人工修正记录</h3>
             <div v-if="feedbackRecords.length === 0" class="muted">暂无人工修正记录</div>
             <div v-for="item in feedbackRecords" class="case-row">
@@ -244,20 +1317,250 @@
           </div>
         </section>
 
-        <section v-if="activeTab === 'graph'" class="work-card graph-card">
-          <h3>轻量知识图谱</h3>
-          <svg :viewBox="`0 0 960 520`" role="img">
-            <line v-for="edge in graphLayout.edges" :x1="edge.x1" :y1="edge.y1" :x2="edge.x2" :y2="edge.y2" class="edge"></line>
-            <g v-for="node in graphLayout.nodes" class="node">
-              <circle :cx="node.x" :cy="node.y" :r="node.r" :class="'node-' + node.type"></circle>
-              <text :x="node.x" :y="node.y + node.r + 16">{{ node.label }}</text>
-            </g>
-          </svg>
+        <section v-if="activeTab === 'evidence'" class="evidence-workbench">
+          <header class="page-header evidence-command">
+            <div>
+              <h3>证据工作台</h3>
+              <p>将检修判断的依据拆成手册证据、案例证据、图谱路径和视觉路径；从这里回看每类证据的具体表现。</p>
+            </div>
+            <button class="secondary-button" type="button" @click="switchTab('claim_detail')">
+              <i data-lucide="file-check-2"></i>
+              <span>进入人工复核</span>
+            </button>
+          </header>
+
+          <div class="evidence-tabs">
+            <button v-for="group in evidenceWorkbenchGroups" type="button" :class="{ active: activeEvidenceGroup === group.key }" @click="activeEvidenceGroup = group.key">
+              <i :data-lucide="group.icon"></i>
+              <span>{{ group.label }}</span>
+              <strong>{{ group.items.length }}</strong>
+            </button>
+          </div>
+
+          <div class="evidence-workbench-grid">
+            <section class="evidence-list-panel">
+              <div v-if="!activeEvidenceItems.length" class="muted">暂无该类证据，生成检修方案或上传图片后会补齐。</div>
+              <article v-for="item in activeEvidenceItems" :key="item.id || item.title" class="evidence-detail-card" :class="'evidence-' + activeEvidenceGroup">
+                <img v-if="activeEvidenceGroup === 'visual' && item.image_url" :src="item.image_url" alt="视觉证据图片" />
+                <div>
+                  <span>{{ activeEvidenceGroupLabel }}</span>
+                  <h4>{{ item.title }}</h4>
+                  <p>{{ item.summary }}</p>
+                  <small>{{ item.meta || item.source }}</small>
+                </div>
+              </article>
+            </section>
+
+            <aside class="evidence-budget-panel">
+              <span>证据预算溯源</span>
+              <h3>证据预算组成</h3>
+              <div v-for="row in evidenceBudgetDetails" class="evidence-budget-line" @click="activeEvidenceGroup = row.key">
+                <div>
+                  <strong>{{ row.label }}</strong>
+                  <small>{{ row.note }}</small>
+                </div>
+                <em>{{ row.percent }}%</em>
+              </div>
+            </aside>
+          </div>
         </section>
 
-        <section v-if="activeTab === 'metrics'" class="work-card">
+        <section v-if="activeTab === 'graph'" class="graph-workbench">
+          <header class="graph-command">
+            <div>
+              <h3>检修证据链工作台</h3>
+            </div>
+            <div class="graph-status-strip">
+              <span>后端：{{ graphStatus.backend || 'sqlite' }}</span>
+              <span>{{ graphStatus.connected ? '已连接' : '降级可用' }}</span>
+              <span>全量节点 {{ graphStatus.node_count || graph.nodes.length || 0 }}</span>
+              <span>全量边 {{ graphStatus.edge_count || graph.edges.length || 0 }}</span>
+            </div>
+          </header>
+
+          <div class="graph-workbench-grid">
+            <aside class="graph-control-rail">
+              <section>
+                <span class="rail-label">设备焦点</span>
+                <div class="graph-focus-list">
+                  <button v-for="item in graphFocusOptions" :key="item.id" type="button" :class="{active: graphFocus === item.id}" @click="setGraphFocus(item.id)">
+                    {{ item.label }}
+                  </button>
+                </div>
+              </section>
+
+              <section>
+                <span class="rail-label">图层</span>
+                <div class="graph-layer-list">
+                  <button v-for="layer in graphLayerOptions" :key="layer.id" type="button" :class="{active: graphLayers[layer.id]}" @click="toggleGraphLayer(layer.id)">
+                    <span></span>{{ layer.label }}
+                  </button>
+                </div>
+              </section>
+
+              <section class="graph-rail-stats">
+                <div v-for="item in graphWorkbenchStats">
+                  <strong>{{ item.value }}</strong>
+                  <span>{{ item.label }}</span>
+                </div>
+              </section>
+            </aside>
+
+            <section class="graph-stage">
+              <div class="graph-stage-header">
+                <div>
+                  <h4>{{ graphFocusLabel }}检修路径</h4>
+                  <span>当前展示 {{ graphEvidenceChains.length }} 条可解释链路，优先保留手册、案例、视觉和安全规则证据。</span>
+                </div>
+                <strong>{{ graphEvidenceChains.length ? '就绪' : '暂无数据' }}</strong>
+              </div>
+
+              <div class="graph-map graph-map-layered" aria-label="证据链关系图谱">
+                <svg viewBox="0 0 1000 520" preserveAspectRatio="xMidYMid meet">
+                  <defs>
+                    <marker id="graphArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                      <path d="M 0 0 L 10 5 L 0 10 z"></path>
+                    </marker>
+                  </defs>
+
+                  <g class="graph-map-lanes">
+                    <g v-for="lane in graphLaneColumns" :key="lane.id">
+                      <rect class="graph-lane-panel" :x="lane.x - lane.width / 2" y="74" :width="lane.width" height="386" rx="18"></rect>
+                      <text class="graph-lane-title" :x="lane.x" y="48">{{ lane.label }}</text>
+                      <text class="graph-lane-caption" :x="lane.x" y="66">{{ lane.caption }}</text>
+                    </g>
+                  </g>
+
+                  <g class="graph-map-edges">
+                    <path
+                      v-for="edge in graphMapEdges"
+                      :key="edge.id"
+                      class="graph-map-edge"
+                      :class="'map-edge-' + edge.tone"
+                      :d="edge.path"
+                      marker-end="url(#graphArrow)"
+                    >
+                      <title>{{ edge.label }}</title>
+                    </path>
+                  </g>
+
+                  <g class="graph-map-nodes">
+                    <g
+                      v-for="node in graphMapNodes"
+                      :key="node.id"
+                      class="graph-map-node"
+                      :class="['map-tone-' + node.tone, { active: selectedGraphNode && selectedGraphNode.id === node.id }]"
+                      :transform="'translate(' + node.x + ',' + node.y + ')'"
+                      :tabindex="node.id === 'current-task' ? -1 : 0"
+                      @click="node.id === 'current-task' ? null : selectGraphNode(node.id)"
+                      @keydown.enter.prevent="node.id === 'current-task' ? null : selectGraphNode(node.id)"
+                    >
+                      <title>{{ graphTypeLabel(node.type) }}：{{ node.label }}</title>
+                      <rect :x="-node.width / 2" :y="-node.height / 2" :width="node.width" :height="node.height" rx="13"></rect>
+                      <text class="graph-node-type" x="0" y="-11">{{ graphTypeLabel(node.type) }}</text>
+                      <text class="graph-node-label" x="0" y="8">{{ node.displayLabel }}</text>
+                      <text v-if="node.metaLabel" class="graph-node-meta" x="0" y="25">{{ node.metaLabel }}</text>
+                    </g>
+                  </g>
+                </svg>
+
+                <div class="graph-map-legend">
+                  <span><i class="legend-task"></i>任务定位</span>
+                  <span><i class="legend-fault"></i>故障判断</span>
+                  <span><i class="legend-evidence"></i>证据支撑</span>
+                  <span><i class="legend-safety"></i>SOP / 安全闸门</span>
+                </div>
+
+                <aside v-if="selectedGraphNode" class="graph-node-popover" @click.stop>
+                  <div class="graph-node-popover-head">
+                    <div>
+                      <span>节点详情</span>
+                      <h4>{{ selectedGraphNode.label }}</h4>
+                    </div>
+                    <button type="button" class="icon-button" @click="clearGraphNode" title="关闭节点详情">
+                      <i data-lucide="x"></i>
+                    </button>
+                  </div>
+
+                  <div class="inspector-meta compact">
+                    <span>{{ graphTypeLabel(selectedGraphNode.type) }}</span>
+                    <span>{{ selectedGraphConnections.length }} 个关联</span>
+                  </div>
+
+                  <section>
+                    <strong>关联关系</strong>
+                    <div class="connection-list popover-connections">
+                      <button v-for="item in selectedGraphConnections" :key="item.direction + item.relation + item.node.id" type="button" @click="selectGraphNode(item.node.id)">
+                        <span>{{ item.relation }}</span>
+                        <strong>{{ truncateGraphLabel(item.node.label, item.node.type) }}</strong>
+                      </button>
+                    </div>
+                  </section>
+
+                  <section>
+                    <strong>证据引用</strong>
+                    <div class="inspector-evidence" v-if="selectedGraphEvidence.length">
+                      <span v-for="item in selectedGraphEvidence" :key="item.id">{{ truncateGraphLabel(item.label, item.type) }}</span>
+                    </div>
+                    <p v-else class="muted">选择故障、案例或手册节点后显示关联证据。</p>
+                  </section>
+                </aside>
+              </div>
+
+              <div class="evidence-chain-list">
+                <article v-for="chain in graphEvidenceChains" :key="chain.id" class="evidence-chain" :class="{active: selectedGraphNode && selectedGraphNode.id === chain.fault.id}" @click="selectGraphNode(chain.fault.id)">
+                  <div class="chain-title-row">
+                    <div>
+                      <strong>{{ chain.component.label }} / {{ chain.fault.label }}</strong>
+                      <span>置信度 {{ chain.confidence }}% · 风险 {{ chain.risk }}</span>
+                    </div>
+                    <button type="button" @click.stop="selectGraphNode(chain.fault.id)">
+                      <i data-lucide="scan-search"></i>
+                    </button>
+                  </div>
+
+                  <div class="chain-flow" aria-label="证据链路径步骤">
+                    <button v-for="step in chain.steps" :key="step.role + step.node.id" type="button" class="chain-step" :class="'tone-' + step.tone" @click.stop="selectGraphNode(step.node.id)">
+                      <span>{{ step.role }}</span>
+                      <strong>{{ truncateGraphLabel(step.node.label, step.node.type) }}</strong>
+                    </button>
+                    <div class="chain-step tone-evidence">
+                      <span>证据</span>
+                      <strong>{{ chain.evidence.length }} 条</strong>
+                    </div>
+                  </div>
+
+                  <div class="chain-evidence-row">
+                    <span v-for="item in chain.evidence" :key="chain.id + item.id" @click.stop="selectGraphNode(item.id)">
+                      {{ item.evidenceType }} · {{ truncateGraphLabel(item.label, item.type) }}
+                    </span>
+                  </div>
+                </article>
+              </div>
+            </section>
+
+          </div>
+
+          <div v-if="visualAssets.length" class="visual-asset-list graph-assets">
+            <h4>结构化视觉资产</h4>
+            <button v-for="asset in visualAssets.slice(0, 4)" type="button" class="visual-asset-preview" @click="selectedVisualAssetId = asset.id; activeEvidenceGroup = 'visual'; switchTab('evidence')">
+              <img :src="visualAssetImageUrl(asset)" alt="结构化视觉资产图片" />
+              <div>
+                <strong>#{{ asset.id }} {{ asset.filename }}</strong>
+                <span>{{ asset.equipment || 'general' }} · {{ componentDisplayName(asset.component || '') }}</span>
+                <small>{{ asset.caption }}</small>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        <section v-if="activeTab === 'metrics' || activeTab === 'metrics_failure'" class="work-card">
+          <div class="sub-tab-bar">
+            <button :class="{ active: activeTab === 'metrics' }" @click="switchTab('metrics')">评测总览</button>
+            <button :class="{ active: activeTab === 'metrics_failure' }" @click="switchTab('metrics_failure')">失败分析</button>
+          </div>
           <h3>量化评测面板</h3>
-          <div class="review-strip">
+          <div class="review-strip" v-show="activeTab === 'metrics'">
             <div>
               <span>案例审核</span>
               <strong>{{ reviewStatus.cases.approved || 0 }}/{{ reviewStatus.targets.approved_cases || 100 }}</strong>
@@ -268,20 +1571,48 @@
               <strong>{{ reviewStatus.eval_questions.approved || 0 }}/{{ reviewStatus.targets.approved_eval_questions || 100 }}</strong>
               <small>当前评测：{{ metrics.latest && metrics.latest.review_basis === 'approved_only' ? '已审核题' : '未审核兜底' }}</small>
             </div>
+            <div>
+              <span>视觉资产</span>
+              <strong>{{ approvedVisualAssetCount }}/{{ imageEvalStatus.required_images || 30 }}</strong>
+              <small>已缓存结构化 VLM/OCR 结果</small>
+            </div>
           </div>
-          <div class="metric-grid">
+          <div v-if="metrics.latest && metrics.latest.category_summary" v-show="activeTab === 'metrics'" class="category-grid">
+            <div v-for="(item, key) in metrics.latest.category_summary" class="category-card">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.question_count }}</strong>
+              <small>Recall {{ Math.round(item.recall_at_5 * 100) }}% · SOP {{ Math.round(item.sop_score * 100) }}%</small>
+              <small v-if="item.visual_hit_at_5 !== null">视觉命中 {{ Math.round(item.visual_hit_at_5 * 100) }}%</small>
+            </div>
+          </div>
+          <div v-if="innovationMetricsList.length" v-show="activeTab === 'metrics'" class="innovation-metric-grid">
+            <div class="innovation-heading">
+              <span>创新指标</span>
+              <strong>Tri-MRO 创新指标</strong>
+              <small>指标直接绑定检修判断卡、安全闸门和知识写入流水线。</small>
+            </div>
+            <div v-for="item in innovationMetricsList" class="innovation-metric-card">
+              <span>{{ item.label }}</span>
+              <strong>{{ item.percent }}%</strong>
+              <div class="bar"><span :style="{ width: item.percent + '%' }"></span></div>
+              <small>{{ item.explanation }}</small>
+            </div>
+          </div>
+          <div class="metric-grid" v-show="activeTab === 'metrics'">
             <div v-for="item in metrics.benchmarks" class="metric-card">
               <h4>{{ item.name }}</h4>
               <div class="bar"><span :style="{width: Math.round(item.recall_at_5 * 100) + '%'}"></span></div>
-              <p>Recall@5 {{ Math.round(item.recall_at_5 * 100) }}%</p>
+              <p>前五召回 {{ Math.round(item.recall_at_5 * 100) }}%</p>
               <p>引用覆盖 {{ Math.round(item.citation_coverage * 100) }}%</p>
               <p>SOP 完整度 {{ Math.round(item.sop_score * 100) }}%</p>
+              <p v-if="item.visual_hit_at_5 !== null">视觉 Top-5 {{ Math.round(item.visual_hit_at_5 * 100) }}%</p>
               <p>幻觉率 {{ Math.round(item.hallucination_rate * 100) }}%</p>
               <p>安全漏检 {{ Math.round((item.safety_miss_rate || 0) * 100) }}%</p>
+              <p>延迟 P95 {{ item.latency_p95_ms || 0 }}ms · 兜底率 {{ Math.round((item.fallback_rate || 0) * 100) }}%</p>
             </div>
           </div>
-          <div v-if="metrics.latest && metrics.latest.details" class="eval-details">
-            <h3>最新评测明细</h3>
+          <div v-if="metrics.latest && metrics.latest.details" v-show="activeTab === 'metrics_failure'" class="eval-details">
+            <h3>失败样例与评测明细</h3>
             <div v-for="detail in metrics.latest.details" class="citation">
               <strong>{{ detail.question }}</strong>
               <p>命中文档：{{ detail.hit_source_ids.join(', ') || '无' }} · SOP {{ Math.round(detail.sop_score * 100) }}%</p>
@@ -290,57 +1621,653 @@
           </div>
         </section>
 
-        <section v-if="activeTab === 'resources'" class="two-column">
-          <div class="work-card">
-            <h3>资源与索引</h3>
-            <p class="muted">将维修手册 PDF/TXT/MD 放入 data/raw/manuals 后，可在这里触发入库和索引重建。</p>
-            <div class="action-grid">
-              <button @click="runComparison(20)"><i data-lucide="bar-chart-3"></i><span>四组对比评测</span></button>
-              <button @click="ingestManuals"><i data-lucide="file-input"></i><span>入库手册</span></button>
-              <button @click="rebuildIndex"><i data-lucide="database-zap"></i><span>重建索引</span></button>
-              <button @click="generateSampleData"><i data-lucide="layers-3"></i><span>生成样例</span></button>
-              <button @click="runEval(20)"><i data-lucide="activity"></i><span>快速评测</span></button>
-              <button @click="runEval(0)"><i data-lucide="timer"></i><span>完整评测</span></button>
-              <button @click="discoverModels"><i data-lucide="cpu"></i><span>探测模型</span></button>
-            </div>
-            <div class="image-eval-strip">
-              <div>
-                <span>图片评测 gate</span>
-                <strong>{{ imageEvalStatus.ready ? 'ready' : 'blocked' }}</strong>
-              </div>
-              <div>
-                <span>已放入图片</span>
-                <strong>{{ imageEvalStatus.available_images || 0 }}/{{ imageEvalStatus.required_images || 30 }}</strong>
-              </div>
-              <div>
-                <span>机械审核</span>
-                <strong>{{ imageEvalStatus.approved_images || 0 }}/{{ imageEvalStatus.required_images || 30 }}</strong>
-              </div>
-              <small>缺失 {{ imageEvalStatus.missing_images || 0 }} 张；清单见 data/image_eval/fault_image_eval_manifest.csv。</small>
-            </div>
-            <pre class="admin-output">{{ adminResult }}</pre>
+        <section v-if="activeTab === 'resources' || activeTab === 'resources_ops' || activeTab === 'resources_models'" class="res-dashboard-section">
+          <div class="sub-tab-bar full-span">
+            <button :class="{ active: activeTab === 'resources' }" @click="switchTab('resources')">资源总览</button>
+            <button :class="{ active: activeTab === 'resources_ops' }" @click="switchTab('resources_ops')">操作中心</button>
+            <button :class="{ active: activeTab === 'resources_models' }" @click="switchTab('resources_models')">系统架构</button>
           </div>
 
-          <div class="work-card">
-            <h3>模型列表</h3>
-            <div class="route-list">
-              <div v-for="route in agentRoutes" class="route-row">
-                <strong>{{ route.label }}</strong>
-                <span>{{ route.provider }} / {{ route.model }}</span>
-                <small>{{ route.supported ? '已支持' : '未接入该能力' }} · {{ route.key_present ? 'key 已配置' : 'key 缺失' }}</small>
+          <!-- ═══════ SUB-TAB 1: 资源总览 ═══════ -->
+          <div class="res-dashboard" v-show="activeTab === 'resources'">
+            <div class="res-top-stats">
+              <div v-for="item in resourceDashboardTopStats" class="res-top-stat">
+                <i :data-lucide="item.icon"></i>
+                <div>
+                  <strong>{{ item.value }}</strong>
+                  <span>{{ item.label }}</span>
+                </div>
               </div>
             </div>
-            <div v-if="modelResults.length === 0" class="muted">尚未探测模型；未配置 key 时会显示缺失原因。</div>
-            <div v-for="provider in modelResults" class="citation">
-              <strong>{{ provider.provider }} · {{ provider.ok ? '可用' : '不可用' }}</strong>
-              <p v-if="provider.error">{{ provider.error }}</p>
-              <small>{{ (provider.models || []).slice(0, 18).join(', ') }}</small>
+
+            <div class="res-category-grid">
+              <article v-for="cat in resourceDashboardCategories" class="res-category-card" :style="{ '--cat-color': cat.color }">
+                <div class="res-cat-header">
+                  <div class="res-cat-icon"><i :data-lucide="cat.icon"></i></div>
+                  <div>
+                    <h4>{{ cat.label }}</h4>
+                    <p>{{ cat.desc }}</p>
+                  </div>
+                </div>
+                <div class="res-cat-metric">
+                  <div class="res-cat-number">{{ cat.count }}</div>
+                  <div class="res-cat-bar">
+                    <div class="res-cat-bar-fill" :style="{ width: (cat.total ? Math.round(cat.verified / cat.total * 100) : 0) + '%' }"></div>
+                  </div>
+                  <div class="res-cat-bar-label">
+                    <span>已验证 {{ cat.verified }}</span>
+                    <span>共 {{ cat.total }}</span>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <div class="res-verify-section">
+              <div class="res-verify-header">
+                <h3>资源验证明细</h3>
+                <div class="res-verify-summary">
+                  <span :class="(resourceVerification.summary.blocked || 0) > 0 ? 'res-badge-blocked' : 'res-badge-ok'">
+                    {{ (resourceVerification.summary.blocked || 0) > 0 ? (resourceVerification.summary.blocked + ' 项被阻断') : '全部通过' }}
+                  </span>
+                  <span class="res-badge-info">官方手册: {{ officialResourceStatus }}</span>
+                </div>
+              </div>
+
+              <div class="res-verify-strips">
+                <div class="res-strip">
+                  <div class="res-strip-item">
+                    <i data-lucide="image"></i>
+                    <div>
+                      <span>图片评测</span>
+                      <strong :class="imageEvalStatus.ready ? 'text-ok' : 'text-blocked'">{{ imageEvalStatus.ready ? '就绪' : '已阻断' }}</strong>
+                    </div>
+                  </div>
+                  <div class="res-strip-item">
+                    <div>
+                      <span>已放入</span>
+                      <strong>{{ imageEvalStatus.available_images || 0 }}/{{ imageEvalStatus.required_images || 30 }}</strong>
+                    </div>
+                  </div>
+                  <div class="res-strip-item">
+                    <div>
+                      <span>已审核</span>
+                      <strong>{{ imageEvalStatus.approved_images || 0 }}/{{ imageEvalStatus.required_images || 30 }}</strong>
+                    </div>
+                  </div>
+                  <div class="res-strip-item">
+                    <div>
+                      <span>视觉库</span>
+                      <strong>{{ visualAssets.length }}</strong>
+                    </div>
+                  </div>
+                </div>
+                <div class="res-strip">
+                  <div class="res-strip-item">
+                    <i data-lucide="cuboid"></i>
+                    <div>
+                      <span>授权三维资产</span>
+                      <strong>{{ resourceVerification.summary.authorized_3d_verified || 0 }}/{{ resourceVerification.summary.authorized_3d_assets || 0 }}</strong>
+                    </div>
+                  </div>
+                  <div class="res-strip-item">
+                    <div>
+                      <span>本地三维模型</span>
+                      <strong>{{ (resourceVerification.three_d_assets || [])[0]?.glb?.meshes || 0 }} 个网格</strong>
+                    </div>
+                  </div>
+                  <div class="res-strip-item">
+                    <div>
+                      <span>许可证</span>
+                      <strong>{{ (resourceVerification.three_d_assets || [])[0]?.license || '待验证' }}</strong>
+                    </div>
+                  </div>
+                  <div class="res-strip-item">
+                    <div>
+                      <span>装配树</span>
+                      <strong>{{ partTreeCandidates.summary.assembly_tree || 0 }}</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <table class="res-table">
+                <thead>
+                  <tr>
+                    <th>资源 ID</th>
+                    <th>类型</th>
+                    <th>验证状态</th>
+                    <th>用途</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="item in (resourceVerification.resources || []).slice(0, 12)">
+                    <td><strong>{{ item.id }}</strong></td>
+                    <td>{{ item.type }}</td>
+                    <td>
+                      <span :class="item.verify_status === 'verified' ? 'res-status-ok' : 'res-status-warn'">{{ item.verify_status }}</span>
+                    </td>
+                    <td><small>{{ item.usage }}</small></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ═══════ SUB-TAB 2: 操作中心 ═══════ -->
+          <div class="res-ops-center" v-show="activeTab === 'resources_ops'">
+            <div class="res-ops-grid">
+              <div class="res-ops-actions">
+                <h3>资源操作</h3>
+                <p class="muted">将维修手册 PDF/TXT/MD 放入 data/raw/manuals 后，可在这里触发入库和索引重建。</p>
+                <div class="action-grid resource-page-grid">
+                  <button v-for="page in resourcePages" :key="page.id" :class="{active: activeResourcePage === page.id}" @click="selectResourcePage(page.id)">
+                    <i :data-lucide="page.icon"></i>
+                    <span>{{ page.label }}</span>
+                  </button>
+                </div>
+                <section class="resource-action-page">
+                  <div class="resource-action-header">
+                    <div>
+                      <span>操作详情</span>
+                      <h4>{{ activeResourcePageMeta.label }}</h4>
+                      <p>{{ activeResourcePageMeta.summary }}</p>
+                    </div>
+                    <button class="primary-button" @click="runActiveResourcePage">
+                      <i :data-lucide="activeResourcePageMeta.icon"></i>
+                      <span>{{ activeResourcePageMeta.actionLabel }}</span>
+                    </button>
+                  </div>
+                  <div v-if="activeResourcePage === 'comparison'" class="resource-page-body">
+                    <div class="resource-page-metrics">
+                      <div><span>对比组</span><strong>{{ resourcePageStats.comparisonGroups }}</strong></div>
+                      <div><span>最新评测</span><strong>{{ resourcePageStats.latestEval }}</strong></div>
+                      <div><span>Tri-MRO 指标</span><strong>{{ innovationMetricsList.length }}</strong></div>
+                    </div>
+                  </div>
+                  <div v-else-if="activeResourcePage === 'ingest'" class="resource-page-body">
+                    <div class="resource-page-metrics">
+                      <div><span>已验证资源</span><strong>{{ resourcePageStats.verifiedResources }}/{{ resourcePageStats.totalResources }}</strong></div>
+                      <div><span>视觉资产</span><strong>{{ resourcePageStats.visualAssets }}</strong></div>
+                      <div><span>官方手册</span><strong>{{ officialResourceStatus }}</strong></div>
+                    </div>
+                  </div>
+                  <div v-else-if="activeResourcePage === 'index'" class="resource-page-body">
+                    <div class="resource-page-metrics">
+                      <div><span>手册/资源</span><strong>{{ resourcePageStats.totalResources }}</strong></div>
+                      <div><span>案例数量</span><strong>{{ pendingCases.length }}</strong></div>
+                      <div><span>图片标签</span><strong>{{ resourcePageStats.visualAssets }}</strong></div>
+                    </div>
+                  </div>
+                  <div v-else-if="activeResourcePage === 'samples'" class="resource-page-body">
+                    <div class="resource-page-metrics">
+                      <div><span>黄金样例</span><strong>G01-G04</strong></div>
+                      <div><span>设备范围</span><strong>4 类</strong></div>
+                      <div><span>演示主线</span><strong>泵泄漏</strong></div>
+                    </div>
+                  </div>
+                  <div v-else-if="activeResourcePage === 'quick_eval'" class="resource-page-body">
+                    <div class="resource-page-metrics">
+                      <div><span>题量</span><strong>20</strong></div>
+                      <div><span>目标</span><strong>快速回归</strong></div>
+                      <div><span>输出</span><strong>指标摘要</strong></div>
+                    </div>
+                  </div>
+                  <div v-else-if="activeResourcePage === 'full_eval'" class="resource-page-body">
+                    <div class="resource-page-metrics">
+                      <div><span>题量</span><strong>全量</strong></div>
+                      <div><span>目标</span><strong>报告级</strong></div>
+                      <div><span>状态</span><strong>{{ resourcePageStats.latestEval }}</strong></div>
+                    </div>
+                  </div>
+                  <div v-else-if="activeResourcePage === 'models'" class="resource-page-body">
+                    <div class="resource-page-metrics">
+                      <div><span>已探测</span><strong>{{ resourcePageStats.modelProviders }}</strong></div>
+                      <div><span>路由</span><strong>{{ agentRoutes.length }}</strong></div>
+                      <div><span>兜底状态</span><strong>本地可用</strong></div>
+                    </div>
+                  </div>
+                  <div class="resource-operation-status">
+                    <strong>当前状态</strong>
+                    <span>{{ resourceOperationStatus }}</span>
+                  </div>
+                </section>
+                <section class="resource-result-panel" :class="['result-' + resourceOperationView.type, 'state-' + resourceOperationView.status]">
+                  <header class="resource-result-head">
+                    <div>
+                      <span>运行结果</span>
+                      <h4>{{ resourceOperationView.title }}</h4>
+                      <p>{{ resourceOperationView.subtitle }}</p>
+                    </div>
+                    <strong>{{ resourceOperationView.statusLabel }}</strong>
+                  </header>
+                  <div class="resource-result-cards">
+                    <article v-for="card in resourceOperationView.cards" :key="card.label" :class="['resource-result-card', 'tone-' + card.tone]">
+                      <span>{{ card.label }}</span>
+                      <strong>{{ card.value }}</strong>
+                      <small>{{ card.note }}</small>
+                    </article>
+                  </div>
+                  <div v-if="resourceOperationView.bars.length" class="resource-result-chart">
+                    <article v-for="bar in resourceOperationView.bars" :key="bar.label" :class="['resource-result-bar', 'tone-' + bar.tone]">
+                      <div>
+                        <span>{{ bar.label }}</span>
+                        <strong>{{ bar.valueLabel }}</strong>
+                      </div>
+                      <div class="result-bar-track"><i :style="{ width: bar.width }"></i></div>
+                      <small>{{ bar.note }}</small>
+                    </article>
+                  </div>
+                  <div v-if="resourceOperationView.rows.length" class="resource-result-table">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th v-for="header in resourceOperationView.tableHeaders" :key="header">{{ header }}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr v-for="(row, rowIndex) in resourceOperationView.rows" :key="rowIndex" :class="row.tone">
+                          <td v-for="(cell, cellIndex) in row.cells" :key="cellIndex">{{ cell }}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <ul v-if="resourceOperationView.notes.length" class="resource-result-notes">
+                    <li v-for="note in resourceOperationView.notes" :key="note">{{ note }}</li>
+                  </ul>
+                </section>
+              </div>
+
+              <div class="res-ops-cad">
+                <div class="candidate-cad-panel">
+                  <div class="candidate-cad-header">
+                    <div>
+                      <span class="panel-kicker">现场照片驱动</span>
+                      <h3>候选 CAD 资产池</h3>
+                      <p class="muted">VLM/OCR 提取部件、孔位、相对位置和铭牌信息，生成结构化 CAD prompt、CadQuery/OpenSCAD 候选代码与渲染预览；候选 CAD 是非测量模型，只用于结构理解和人工审核。</p>
+                    </div>
+                    <button type="button" @click="generateCandidateCadFromCurrentImage" :disabled="!query.visual_asset_id">
+                      <i data-lucide="box"></i><span>从当前照片生成候选 CAD</span>
+                    </button>
+                  </div>
+                  <div class="candidate-cad-stats">
+                    <div v-for="item in candidateCadStats">
+                      <strong>{{ item.value }}</strong>
+                      <span>{{ item.label }}</span>
+                    </div>
+                  </div>
+                  <p class="candidate-cad-status">{{ candidateCadStatus }}</p>
+                  <section class="candidate-cad-review-workbench" v-if="selectedCandidateCadAsset">
+                    <header>
+                      <div>
+                        <span class="panel-kicker">实验链路</span>
+                        <h3>候选 CAD 审核工位</h3>
+                      </div>
+                      <div class="runtime-badge">
+                        <span>运行模式</span>
+                        <strong>{{ statusDisplayLabel(cadRuntime.recommended_mode) }}</strong>
+                      </div>
+                    </header>
+                    <div class="runtime-grid">
+                      <div v-for="tool in cadRuntimeTools" :class="{ok: tool.available}">
+                        <strong>{{ tool.role }}</strong>
+                        <span>{{ tool.available ? '可用' : '未安装' }} · {{ tool.command || tool.name }}</span>
+                      </div>
+                    </div>
+                    <div class="candidate-review-grid">
+                      <section>
+                        <h4>多视角渲染</h4>
+                        <div class="candidate-render-grid">
+                          <figure v-for="view in ['iso', 'front', 'side', 'top']" class="candidate-render-thumb" role="button" tabindex="0" @click="openCandidateCadViewer(selectedCandidateCadAsset, view)" @keydown.enter="openCandidateCadViewer(selectedCandidateCadAsset, view)">
+                            <img :src="candidateCadRenderUrl(selectedCandidateCadAsset, view)" :alt="'候选 CAD ' + view + ' 视图'" />
+                            <figcaption>{{ view }}</figcaption>
+                            <span class="candidate-render-open">查看大图</span>
+                          </figure>
+                        </div>
+                        <div class="candidate-cad-links">
+                          <a :href="candidateCadFileUrl(selectedCandidateCadAsset, 'step')" target="_blank" rel="noopener">STEP</a>
+                          <a :href="candidateCadFileUrl(selectedCandidateCadAsset, 'stl')" target="_blank" rel="noopener">STL</a>
+                          <a :href="candidateCadFileUrl(selectedCandidateCadAsset, 'glb')" target="_blank" rel="noopener">GLB</a>
+                          <a :href="candidateCadFileUrl(selectedCandidateCadAsset, 'freecad-validation')" target="_blank" rel="noopener">FreeCAD 校验</a>
+                          <a :href="candidateCadFileUrl(selectedCandidateCadAsset, 'artifact-manifest')" target="_blank" rel="noopener">manifest</a>
+                        </div>
+                      </section>
+                      <section>
+                        <h4>编辑 CAD spec</h4>
+                        <textarea v-model="candidateCadSpecDraft" rows="14" spellcheck="false"></textarea>
+                        <div class="candidate-cad-actions">
+                          <button type="button" @click="patchCandidateCadSpec"><i data-lucide="save"></i><span>保存修正</span></button>
+                          <button type="button" @click="rerenderCandidateCad(selectedCandidateCadAsset.id)"><i data-lucide="refresh-cw"></i><span>重新渲染</span></button>
+                        </div>
+                        <small>{{ candidateCadReviewStatus }}</small>
+                      </section>
+                      <section>
+                        <h4>晋升为结构链资产</h4>
+                        <p>{{ selectedCandidateCadAsset.observation.caption || '等待视觉观察结果' }}</p>
+                        <div class="candidate-cad-tags">
+                          <span v-for="key in (selectedCandidateCadAsset.editable_spec?.component_keys || selectedCandidateCadAsset.cad_spec.component_keys || []).slice(0, 8)">{{ componentDisplayName(key) }}</span>
+                        </div>
+                        <div class="candidate-cad-actions">
+                          <button type="button" @click="approveCandidateCad(selectedCandidateCadAsset.id)" :disabled="selectedCandidateCadAsset.status === 'approved_candidate' || selectedCandidateCadAsset.status === 'promoted_standard_asset'">
+                            <i data-lucide="check-circle-2"></i><span>批准候选</span>
+                          </button>
+                          <button type="button" @click="promoteCandidateCad(selectedCandidateCadAsset.id)" :disabled="selectedCandidateCadAsset.status !== 'approved_candidate'">
+                            <i data-lucide="cuboid"></i><span>晋升为结构链资产</span>
+                          </button>
+                        </div>
+                      </section>
+                    </div>
+                  </section>
+                  <div class="candidate-cad-grid">
+                    <article v-for="item in candidateCadAssets.slice(0, 6)" class="candidate-cad-card" :class="{selected: selectedCandidateCadAsset && selectedCandidateCadAsset.id === item.id}" @click="selectCandidateCad(item)">
+                      <header>
+                        <div>
+                          <span>{{ partTreeEquipmentLabel(item.equipment) }} · {{ item.model || '未填型号' }}</span>
+                          <strong>#{{ item.id }} {{ candidateCadStatusLabel(item.status) }}</strong>
+                        </div>
+                        <em>{{ candidateCadCompareLabel(item) }}</em>
+                      </header>
+                      <img :src="candidateCadFileUrl(item, 'render-iso')" alt="候选 CAD Blender 渲染预览" @click.stop="openCandidateCadViewer(item, 'iso')" />
+                      <p>{{ item.observation.caption || '等待视觉观察结果' }}</p>
+                      <div class="candidate-cad-links">
+                        <a href="#" @click.prevent.stop="openCandidateCadViewer(item, 'iso')">Blender 渲染</a>
+                        <a :href="candidateCadFileUrl(item, 'spec')" target="_blank" rel="noopener">CAD spec</a>
+                        <a :href="candidateCadFileUrl(item, 'cadquery')" target="_blank" rel="noopener">CadQuery</a>
+                        <a :href="candidateCadFileUrl(item, 'openscad')" target="_blank" rel="noopener">OpenSCAD</a>
+                        <a :href="candidateCadFileUrl(item, 'freecad-validation')" target="_blank" rel="noopener">校验</a>
+                      </div>
+                      <div class="candidate-cad-tags">
+                        <span v-for="key in (item.cad_spec.component_keys || []).slice(0, 4)">{{ componentDisplayName(key) }}</span>
+                      </div>
+                      <div class="candidate-cad-actions">
+                        <button type="button" @click="approveCandidateCad(item.id)" :disabled="item.status === 'approved_candidate'">
+                          <i data-lucide="check-circle-2"></i><span>批准候选</span>
+                        </button>
+                        <button type="button" @click="rejectCandidateCad(item.id)" :disabled="item.status === 'rejected'">
+                          <i data-lucide="x-circle"></i><span>驳回</span>
+                        </button>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="work-card part-tree-workbench">
+              <div class="part-tree-header">
+                <div>
+                  <span class="panel-kicker">3D CAD 升级池</span>
+                  <h3>零件树候选资源</h3>
+                  <p class="muted">{{ partTreeCandidates.truth_statement || '候选资源等待验证。' }}</p>
+                </div>
+                <div class="part-tree-verdict">
+                  <strong>{{ partTreeCandidates.summary.assembly_tree || 0 }}</strong>
+                  <span>原生装配树</span>
+                </div>
+              </div>
+              <div class="part-tree-stats">
+                <div v-for="item in partTreeCandidateStats" class="part-tree-stat">
+                  <strong>{{ item.value }}</strong>
+                  <span>{{ item.label }}</span>
+                </div>
+              </div>
+              <div class="part-tree-filter" aria-label="CAD 候选资源筛选">
+                <button v-for="item in partTreeEquipmentOptions" type="button" :class="{ active: partTreeEquipment === item.id }" @click="partTreeEquipment = item.id">
+                  {{ item.label }}
+                </button>
+              </div>
+              <div class="part-tree-grid">
+                <article v-for="item in filteredPartTreeCandidates" class="part-tree-card">
+                  <header>
+                    <div>
+                      <span>{{ partTreeEquipmentLabel(item.equipment) }} · {{ item.source || '本地资源' }}</span>
+                      <strong>{{ item.title }}</strong>
+                    </div>
+                    <em :class="'tone-' + partTreeClassificationTone(item.analysis.classification)">
+                      {{ partTreeClassificationLabel(item.analysis.classification) }}
+                    </em>
+                  </header>
+                  <div class="part-tree-metrics">
+                    <span>对象 {{ item.analysis.object_count || 0 }}</span>
+                    <span>特征 {{ item.analysis.feature_count || 0 }}</span>
+                    <span>可见 {{ item.analysis.visible_object_count || 0 }}</span>
+                    <span>{{ formatBytes(item.bytes) }}</span>
+                  </div>
+                  <p>{{ item.intended_use }}</p>
+                  <div class="part-tree-proof">
+                    <span>{{ item.status }} · {{ item.license }}</span>
+                    <small>{{ item.local_path }}</small>
+                    <small>SHA256 {{ item.sha256 ? item.sha256.slice(0, 12) + '...' : 'missing' }}</small>
+                  </div>
+                  <div v-if="item.warnings && item.warnings.length" class="part-tree-warnings">
+                    <span v-for="warning in item.warnings">{{ warning }}</span>
+                  </div>
+                  <a v-if="item.source_url" :href="item.source_url" target="_blank" rel="noopener">查看来源</a>
+                </article>
+              </div>
+            </div>
+          </div>
+
+          <!-- ═══════ SUB-TAB 3: 系统架构 ═══════ -->
+          <div class="res-arch" v-show="activeTab === 'resources_models'">
+            <div class="res-arch-header">
+              <div>
+                <span class="panel-kicker">Tri-MRO 多智能体架构</span>
+                <h3>系统架构与模型路由</h3>
+                <p class="muted">五个智能体角色各自路由到最优模型服务方，支持多级兜底和本地向量回退。</p>
+              </div>
+              <button class="primary-button" @click="selectResourcePage('models'); runActiveResourcePage()">
+                <i data-lucide="radar"></i>
+                <span>探测全部模型</span>
+              </button>
+            </div>
+
+            <div class="res-arch-pipeline">
+              <div v-for="(role, idx) in agentPipelineRoles" class="res-pipe-node" :class="{ 'pipe-ok': role.route?.supported, 'pipe-warn': role.route && !role.route.supported }">
+                <div class="res-pipe-icon"><i :data-lucide="role.icon"></i></div>
+                <div class="res-pipe-body">
+                  <strong>{{ role.label }}</strong>
+                  <span class="res-pipe-role">{{ role.role }}</span>
+                  <template v-if="role.route">
+                    <span class="res-pipe-model">{{ role.route.provider }} / {{ role.route.model }}</span>
+                    <span class="res-pipe-status">
+                      <i :data-lucide="role.route.key_present ? 'check-circle-2' : 'alert-circle'" style="width:14px;height:14px"></i>
+                      {{ role.route.key_present ? '密钥已配置' : '密钥缺失' }}
+                    </span>
+                  </template>
+                  <span v-else class="res-pipe-model muted">未配置</span>
+                </div>
+                <div v-if="idx < agentPipelineRoles.length - 1" class="res-pipe-arrow"><i data-lucide="chevron-right"></i></div>
+              </div>
+            </div>
+
+            <div class="res-arch-grid">
+              <div class="work-card">
+                <h3>智能体路由表</h3>
+                <table class="res-table">
+                  <thead>
+                    <tr>
+                      <th>角色</th>
+                      <th>供应商</th>
+                      <th>模型</th>
+                      <th>状态</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="route in agentRoutes">
+                      <td><strong>{{ route.label }}</strong></td>
+                      <td>{{ route.provider }}</td>
+                      <td><code>{{ route.model }}</code></td>
+                      <td>
+                        <span :class="route.supported ? 'res-status-ok' : 'res-status-warn'">
+                          {{ route.supported ? '已支持' : '未接入' }}
+                        </span>
+                        <span :class="route.key_present ? 'res-status-ok' : 'res-status-warn'" style="margin-left:8px">
+                          {{ route.key_present ? '密钥正常' : '密钥缺失' }}
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="work-card">
+                <h3>模型服务方探测</h3>
+                <div v-if="modelResults.length === 0" class="muted" style="padding:16px 0">点击「探测全部模型」获取各供应商实时状态。</div>
+                <div class="res-provider-list">
+                  <div v-for="provider in modelResults" class="res-provider-card" :class="{ 'provider-ok': provider.ok, 'provider-err': !provider.ok }">
+                    <div class="res-provider-header">
+                      <i :data-lucide="provider.ok ? 'check-circle-2' : 'x-circle'"></i>
+                      <strong>{{ provider.provider }}</strong>
+                    </div>
+                    <p v-if="provider.error" class="res-provider-error">{{ provider.error }}</p>
+                    <div v-if="provider.models && provider.models.length" class="res-provider-models">
+                      <code v-for="m in provider.models.slice(0, 12)">{{ m }}</code>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="res-arch-runtime">
+              <h3>CAD 工具链运行时</h3>
+              <div class="res-runtime-strip">
+                <div class="res-runtime-mode">
+                  <span>推荐模式</span>
+                  <strong>{{ statusDisplayLabel(cadRuntime.recommended_mode) }}</strong>
+                </div>
+                <div v-for="tool in cadRuntimeTools" class="res-runtime-tool" :class="{ ok: tool.available }">
+                  <i :data-lucide="tool.available ? 'check-circle-2' : 'circle-dashed'"></i>
+                  <div>
+                    <strong>{{ tool.role }}</strong>
+                    <span>{{ tool.command || tool.name }}</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
+
+        <div v-if="candidateCadLightbox.open && candidateCadViewerAsset" class="cad-viewer-backdrop" @click.self="closeCandidateCadViewer">
+          <section class="cad-viewer-modal" role="dialog" aria-modal="true" aria-label="CAD 多视角详情">
+            <header class="cad-viewer-header">
+              <div>
+                <span class="panel-kicker">CAD 多视角详情</span>
+                <h3>#{{ candidateCadViewerAsset.id }} {{ partTreeEquipmentLabel(candidateCadViewerAsset.equipment) }} / {{ candidateCadViewerAsset.model || '未填型号' }}</h3>
+                <p>点击下方视角切换大图；该候选 CAD 仅用于结构理解和人工审核，不用于尺寸测量、制造加工或安全放行。</p>
+              </div>
+              <button type="button" class="cad-viewer-close" @click="closeCandidateCadViewer" aria-label="关闭 CAD 多视角详情">
+                <i data-lucide="x"></i>
+              </button>
+            </header>
+
+            <div class="cad-viewer-mode-tabs" aria-label="CAD 检视模式切换">
+              <button
+                type="button"
+                :class="{ active: candidateCadLightbox.mode === 'glb' }"
+                @click="setCandidateCadViewerMode('glb')"
+              >
+                <i data-lucide="box"></i>
+                <span>交互 GLB</span>
+              </button>
+              <button
+                type="button"
+                :class="{ active: candidateCadLightbox.mode === 'render' }"
+                @click="setCandidateCadViewerMode('render')"
+              >
+                <i data-lucide="image"></i>
+                <span>渲染四视图</span>
+              </button>
+              <small>GLB 模式支持鼠标拖拽旋转、滚轮缩放；PNG 模式用于核对 Blender 正交渲染。</small>
+            </div>
+
+            <div v-if="candidateCadLightbox.mode === 'render'" class="cad-viewer-tabs" aria-label="CAD 视角切换">
+              <button
+                v-for="view in candidateCadViewerViews"
+                :key="view"
+                type="button"
+                :class="{ active: candidateCadLightbox.view === view }"
+                @click="setCandidateCadViewerView(view)"
+              >
+                {{ view }}
+              </button>
+              <div class="cad-viewer-rotate-tools" aria-label="CAD 图片旋转">
+                <button type="button" @click="rotateCandidateCadViewer(-90)">
+                  <i data-lucide="rotate-ccw"></i>
+                  <span>左转 90°</span>
+                </button>
+                <button type="button" @click="rotateCandidateCadViewer(90)">
+                  <i data-lucide="rotate-cw"></i>
+                  <span>右转 90°</span>
+                </button>
+                <button type="button" @click="resetCandidateCadViewerRotation">
+                  <i data-lucide="refresh-ccw"></i>
+                  <span>复位</span>
+                </button>
+                <strong>{{ candidateCadViewerRotation }}°</strong>
+              </div>
+            </div>
+
+            <div class="cad-viewer-body">
+              <figure v-if="candidateCadLightbox.mode === 'glb'" class="cad-viewer-figure cad-viewer-glb-figure">
+                <div ref="candidateCadGlbCanvas" class="cad-viewer-glb-stage"></div>
+                <figcaption>交互 GLB 模型 · 鼠标拖拽旋转 · 滚轮缩放 · 用于结构理解和人工审核，不用于尺寸测量或安全放行</figcaption>
+              </figure>
+
+              <figure v-else class="cad-viewer-figure">
+                <div class="cad-viewer-image-stage">
+                  <img :src="candidateCadRenderUrl(candidateCadViewerAsset, candidateCadLightbox.view)" :alt="'候选 CAD ' + candidateCadLightbox.view + ' 放大视图'" :style="candidateCadViewerImageStyle" />
+                </div>
+                <figcaption>{{ candidateCadLightbox.view.toUpperCase() }} 视角 · Blender 正交渲染 · 当前旋转 {{ candidateCadViewerRotation }}°</figcaption>
+              </figure>
+
+              <aside class="cad-viewer-side">
+                <section>
+                  <span>运行模式</span>
+                  <strong>{{ statusDisplayLabel(candidateCadViewerAsset.runtime_report?.artifact_mode || cadRuntime.recommended_mode || 'unknown') }}</strong>
+                  <small>渲染器：{{ statusDisplayLabel(candidateCadViewerAsset.artifact_manifest?.render_engine || candidateCadViewerAsset.render_report?.renderer || 'unknown') }}</small>
+                </section>
+                <section>
+                  <span>审核状态</span>
+                  <strong>{{ candidateCadStatusLabel(candidateCadViewerAsset.status) }}</strong>
+                  <small>{{ candidateCadCompareLabel(candidateCadViewerAsset) }}</small>
+                </section>
+                <section>
+                  <span>结构部件</span>
+                  <div class="cad-viewer-tags">
+                    <em v-for="key in (candidateCadViewerAsset.editable_spec?.component_keys || candidateCadViewerAsset.cad_spec?.component_keys || []).slice(0, 8)">{{ componentDisplayName(key) }}</em>
+                  </div>
+                </section>
+                <section>
+                  <span>工程产物</span>
+                  <div class="cad-viewer-links">
+                    <a v-for="link in candidateCadViewerLinks" :href="candidateCadFileUrl(candidateCadViewerAsset, link.role)" target="_blank" rel="noopener">
+                      {{ link.label }}
+                    </a>
+                  </div>
+                </section>
+              </aside>
+            </div>
+
+            <div v-if="candidateCadLightbox.mode === 'render'" class="cad-viewer-strip">
+              <button
+                v-for="view in candidateCadViewerViews"
+                :key="'thumb-' + view"
+                type="button"
+                :class="{ active: candidateCadLightbox.view === view }"
+                @click="setCandidateCadViewerView(view)"
+              >
+                <img :src="candidateCadRenderUrl(candidateCadViewerAsset, view)" :alt="'候选 CAD ' + view + ' 缩略图'" />
+                <span>{{ view }}</span>
+              </button>
+            </div>
+          </section>
+        </div>
       </main>
     </div>
 
-    <script src="/static/app.js?v=agent-trace-comparison-image-eval"></script>
+    <script src="/static/vendor/three.min.js"></script>
+    <script src="/static/vendor/GLTFLoader.js"></script>
+    <script src="/static/three-workbench.js?v=cad-label-stability-20260518-v1"></script>
+    <script src="/static/app.js?v=resource-results-20260518-v1"></script>
   </body>
 </html>

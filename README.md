@@ -1,6 +1,6 @@
-# A1 多模态设备检修知识检索与作业辅助系统
+# A1-MAKG：面向设备检修的多模态证据链作业辅助系统
 
-面向中国软件杯 A1 赛题的可运行原型。系统聚焦电机、离心泵、轴承三类设备，覆盖多模态检索、检修手册引用、标准化作业指引、合规校验、案例审核、人工修正闭环、知识图谱更新和评测面板。
+面向中国软件杯 A1 赛题的可运行原型。系统定位为“证据链 + 作业票 + 安全校验”的检修作业辅助平台，聚焦电机、离心泵、轴承三类设备，覆盖多模态检索、检修手册引用、标准化作业指引、合规校验、案例审核、人工修正闭环、知识图谱更新和评测面板。
 
 ## 快速启动
 
@@ -179,6 +179,25 @@ Invoke-RestMethod -Uri http://127.0.0.1:8051/api/admin/generate-sample-data -Met
 Invoke-RestMethod -Uri "http://127.0.0.1:8051/api/eval/run?max_questions=20" -Method Post
 Invoke-RestMethod -Uri http://127.0.0.1:8051/api/review-status
 ```
+
+A1-MAKG 升级新增了官方样例手册和外部资源二次验证链路：
+
+```powershell
+.\.venv\Scripts\python.exe .\scripts\verify_external_resources.py
+.\.venv\Scripts\python.exe .\scripts\apply_a1_makg_upgrade.py
+```
+
+验证结果见 `data/sources/verified_resources.json` 和 `docs/EXTERNAL_RESOURCE_VERIFICATION.md`。官方《摩托车发动机维修手册.pdf》作为 `engine` 样例设备入库，用于证明系统可适配 A1 官方资料；主线仍聚焦电机、离心泵和轴承。升级说明见 [docs/A1_MAKG_UPGRADE.md](docs/A1_MAKG_UPGRADE.md)。
+
+视觉与图谱升级新增了结构化视觉资产和 Neo4j/SQLite 双图谱后端：
+
+```powershell
+Invoke-RestMethod -Uri http://127.0.0.1:8051/api/graph/status
+Invoke-RestMethod -Uri http://127.0.0.1:8051/api/admin/graph/rebuild -Method Post
+Invoke-RestMethod -Uri http://127.0.0.1:8051/api/visual-assets
+```
+
+图片上传后会生成 `visual_asset_id` 和 `visual_analysis`，问诊时会把缺陷标签、OCR 文本、流程图摘要和检索关键词纳入 RAG 上下文。图谱默认使用 SQLite fallback，配置 `GRAPH_BACKEND=neo4j`、`NEO4J_URI`、`NEO4J_USER`、`NEO4J_PASSWORD` 后可切换到 Neo4j 投影。说明见 [docs/GRAPH_VISION_UPGRADE.md](docs/GRAPH_VISION_UPGRADE.md)。
 
 `max_questions=20` 用于演示快速评测；正式报告可以去掉该参数跑完整评测。若机械审核包尚未回写，评测结果会标记为 `review_basis=unreviewed_fallback`；有已审核评测题后，会自动优先使用 `review_status='approved'` 的题目。
 

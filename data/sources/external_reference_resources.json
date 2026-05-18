@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "created_for": "A1-MAKG upgrade reference resources",
+  "usage_note": "Only verified metadata, README/LICENSE excerpts, article pages, and license-safe PDFs are retained. Third-party source code is not copied into this project.",
+  "resources": [
+    {
+      "id": "official-motorcycle-engine-manual",
+      "type": "official_sample_manual",
+      "title": "摩托车发动机维修手册",
+      "source_url": "local:D:/30726/Desktop/竞赛目录/摩托车发动机维修手册.pdf",
+      "local_path": "data/raw/manuals/official/motorcycle-engine-maintenance-manual.pdf",
+      "expected_keywords": ["摩托车发动机维修手册", "火花塞", "起动电机", "发动机", "压缩压力"],
+      "expected_pages": 41,
+      "usage": "A1 official sample manual adaptation and engine maintenance retrieval demo",
+      "license": "contest-provided local sample; redistribution requires contest permission"
+    },
+    {
+      "id": "ragflow",
+      "type": "github_project",
+      "title": "infiniflow/ragflow",
+      "source_url": "https://github.com/infiniflow/ragflow",
+      "local_path": "data/external/references/github/ragflow",
+      "expected_keywords": ["RAGFlow", "RAG", "document", "Agent"],
+      "usage": "reference for document parsing, citations, and agentic RAG design",
+      "license": "verify from repository LICENSE"
+    },
+    {
+      "id": "rag-anything",
+      "type": "github_project",
+      "title": "HKUDS/RAG-Anything",
+      "source_url": "https://github.com/HKUDS/RAG-Anything",
+      "local_path": "data/external/references/github/rag-anything",
+      "expected_keywords": ["RAG-Anything", "multimodal", "image", "table"],
+      "usage": "reference for unified multimodal resource units",
+      "license": "verify from repository LICENSE"
+    },
+    {
+      "id": "colette",
+      "type": "github_project",
+      "title": "jolibrain/colette",
+      "source_url": "https://github.com/jolibrain/colette",
+      "local_path": "data/external/references/github/colette",
+      "expected_keywords": ["Colette", "Vision", "RAG", "document"],
+      "usage": "reference for visual document page retrieval",
+      "license": "verify from repository LICENSE"
+    },
+    {
+      "id": "visrag",
+      "type": "github_project",
+      "title": "OpenBMB/VisRAG",
+      "source_url": "https://github.com/openbmb/visrag",
+      "local_path": "data/external/references/github/visrag",
+      "expected_keywords": ["VisRAG", "Vision", "Retrieval", "Generation"],
+      "usage": "reference for parsing-free visual RAG evidence",
+      "license": "verify from repository LICENSE"
+    },
+    {
+      "id": "lightrag",
+      "type": "github_project",
+      "title": "HKUDS/LightRAG",
+      "source_url": "https://github.com/HKUDS/LightRAG",
+      "local_path": "data/external/references/github/lightrag",
+      "expected_keywords": ["LightRAG", "knowledge graph", "RAG", "evaluation"],
+      "usage": "reference for lightweight graph-enhanced retrieval",
+      "license": "verify from repository LICENSE"
+    },
+    {
+      "id": "microsoft-graphrag",
+      "type": "github_project",
+      "title": "microsoft/graphrag",
+      "source_url": "https://github.com/microsoft/graphrag",
+      "local_path": "data/external/references/github/microsoft-graphrag",
+      "expected_keywords": ["GraphRAG", "knowledge graph", "RAG", "structured data"],
+      "usage": "reference for graph memory and evidence organization",
+      "license": "verify from repository LICENSE"
+    },
+    {
+      "id": "atlas-cmms",
+      "type": "github_project",
+      "title": "Grashjs/cmms",
+      "source_url": "https://github.com/Grashjs/cmms",
+      "local_path": "data/external/references/github/atlas-cmms",
+      "expected_keywords": ["CMMS", "maintenance", "asset", "work order"],
+      "usage": "reference for maintenance work-order workflow",
+      "license": "verify from repository LICENSE"
+    },
+    {
+      "id": "phm-technical-manual-rag",
+      "type": "paper",
+      "title": "An Evaluation Framework for Fault Diagnosis Using Technical Manuals in Retrieval-Augmented Large Language Models",
+      "source_url": "https://papers.phmsociety.org/index.php/phmconf/article/view/4549",
+      "download_url": "https://papers.phmsociety.org/index.php/phmconf/article/download/4549/phmc_25_4549",
+      "local_path": "data/external/references/papers/phm-technical-manual-rag.pdf",
+      "expected_keywords": ["Fault Diagnosis", "Technical Manuals", "Retrieval-Augmented", "Large Language Models"],
+      "usage": "reference for evaluation-first validation under realistic diagnostic conditions",
+      "license": "article page metadata"
+    },
+    {
+      "id": "robotic-arm-multimodal-rag",
+      "type": "paper",
+      "title": "A Multimodal RAG-based Maintenance Chatbot for Robotic Arm Manuals",
+      "source_url": "https://iroboticsjournal.org/index.php/irobotics/article/view/192",
+      "download_url": "https://iroboticsjournal.org/index.php/irobotics/article/download/192/140/1021",
+      "local_path": "data/external/references/papers/robotic-arm-multimodal-rag.pdf",
+      "expected_keywords": ["Multimodal", "RAG", "Maintenance", "Manuals"],
+      "usage": "reference for text and visual maintenance manual pipelines",
+      "license": "Creative Commons Attribution 4.0 International"
+    },
+    {
+      "id": "kg2rag",
+      "type": "paper_page",
+      "title": "Knowledge Graph-Guided Retrieval Augmented Generation",
+      "source_url": "https://arxiv.org/abs/2502.06864",
+      "download_url": "https://arxiv.org/pdf/2502.06864",
+      "local_path": "data/external/references/papers/kg2rag.pdf",
+      "expected_keywords": ["Knowledge Graph-Guided", "Retrieval Augmented Generation", "KG", "RAG"],
+      "usage": "reference for graph-guided chunk expansion and organization",
+      "license": "arXiv paper metadata"
+    },
+    {
+      "id": "mllmda-kgc",
+      "type": "paper_page",
+      "title": "A knowledge graphs construction method enhanced by multimodal large language model for industrial equipment operation and maintenance",
+      "source_url": "https://www.sciencedirect.com/science/article/pii/S1474034625005981",
+      "local_path": "data/external/references/papers/mllmda-kgc.html",
+      "expected_keywords": ["multimodal large language model", "industrial equipment", "operation and maintenance", "knowledge graph"],
+      "usage": "reference for multimodal entity and relation extraction",
+      "license": "ScienceDirect abstract page; full text not redistributed"
+    },
+    {
+      "id": "makg-maintenance",
+      "type": "paper_page",
+      "title": "A Multi-Agent and synergistic Knowledge Graph retrieval-augmented generation framework for intelligent maintenance",
+      "source_url": "https://www.sciencedirect.com/science/article/pii/S0278612526000452",
+      "local_path": "data/external/references/papers/makg-maintenance.html",
+      "expected_keywords": ["Multi-Agent", "Knowledge Graph", "RAG", "intelligent maintenance"],
+      "usage": "reference for the MAKG system narrative",
+      "license": "ScienceDirect abstract page; full text not redistributed"
+    },
+    {
+      "id": "mvtec-ad-page",
+      "type": "dataset_page",
+      "title": "MVTec Anomaly Detection Dataset",
+      "source_url": "https://www.mvtec.com/research-teaching/datasets/mvtec-ad",
+      "local_path": "data/external/references/datasets/mvtec-ad.html",
+      "expected_keywords": ["MVTec", "Anomaly Detection", "industrial inspection", "dataset"],
+      "usage": "optional industrial anomaly benchmark reference; full dataset not downloaded",
+      "license": "dataset page terms apply"
+    },
+    {
+      "id": "openmaint",
+      "type": "project_page",
+      "title": "openMAINT latest version",
+      "source_url": "https://www.openmaint.org/en/download/latest-version",
+      "local_path": "data/external/references/projects/openmaint-latest-version.html",
+      "expected_keywords": ["openMAINT", "maintenance", "workflows", "web-based"],
+      "usage": "reference for maintenance workflow and asset-management product framing",
+      "license": "official project page metadata"
+    }
+  ]
+}

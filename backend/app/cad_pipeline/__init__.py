@@ -1,0 +1,1 @@
+"""Candidate CAD generation pipeline."""

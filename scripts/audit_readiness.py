@@ -12,8 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 REQUIRED_EQUIPMENT = {"motor", "pump", "bearing"}
-REQUIRED_APPROVED_CASES = 100
-REQUIRED_APPROVED_EVAL = 100
+REQUIRED_APPROVED_CASES = 150
+REQUIRED_APPROVED_EVAL = 130
 FORBIDDEN_ARCHIVE_NAMES = {".env", ".env.local", "data/maintenance.db", "data/test-maintenance.db"}
 FORBIDDEN_ARCHIVE_SUFFIXES = (".db", ".sqlite", ".sqlite3", ".pdf", ".zip")
 FORBIDDEN_ARCHIVE_PARTS = ("__pycache__/", ".venv/", ".pytest_cache/", "node_modules/", "dist/")
@@ -71,6 +71,10 @@ def _db_summary(db_path: Path | None = None) -> dict:
             "eval_total": review["eval_questions"]["total"],
             "eval_approved": review["eval_questions"]["approved"],
             "eval_unreviewed": review["eval_questions"]["unreviewed"],
+            "visual_assets": conn.execute("SELECT COUNT(*) AS c FROM visual_assets").fetchone()["c"],
+            "approved_visual_assets": conn.execute(
+                "SELECT COUNT(*) AS c FROM visual_assets WHERE review_status = 'approved'"
+            ).fetchone()["c"],
             "embedding_models": embedding_models,
         }
     finally:
@@ -253,7 +257,9 @@ def run_audit(
 
     missing_resources: list[str] = []
     if checks["mechanical_review"]["status"] != "pass":
-        missing_resources.append("机械专业队友需审核并回写至少 100 条案例和 100 条评测题。")
+        missing_resources.append(
+            f"机械专业队友需审核并回写至少 {REQUIRED_APPROVED_CASES} 条案例和 {REQUIRED_APPROVED_EVAL} 条评测题。"
+        )
     if checks["loongarch_runtime"]["required"] and checks["loongarch_runtime"]["status"] != "pass":
         missing_resources.append("需要 LoongArch + 银河麒麟实机运行 check_deploy.py 与完整演示链路。")
     if checks["cloud_model_routes"]["status"] != "pass":
